@@ -16,6 +16,7 @@ public class Neuron {
 
     private float bias;
     private Random rng;
+    private float[] weights;
     // private int weight;
 
     public Neuron(int inputCount, boolean rawInputAllowed, int bias) {
@@ -28,15 +29,17 @@ public class Neuron {
         MAX_SIZE = inputCount;
 
         this.bias = bias;
-
         rng = new Random();
+        weights = new float[inputCount];
+
+        for(int i=0;i<inputCount;i++) weights[i] = rng.nextInt(10);
     }
 
     public float getOutput() {
         float totalValue = 0;
         if (rawInput != null)
-            for (float value : rawInput)
-                totalValue += value;
+            for (int i=0;i<MAX_SIZE;i++)
+                totalValue += rawInput[i] * weights[i];
 
         if (inputNeurons != null)
             for (Neuron neuron : inputNeurons)
