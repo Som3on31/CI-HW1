@@ -4,6 +4,8 @@
  * <p>This class is created to make a full use of the concept of a neuron as a unit
  * </p>
  */
+import java.util.Random;
+
 
 public class Neuron {
 
@@ -13,6 +15,7 @@ public class Neuron {
     private int MAX_SIZE;
 
     private float bias;
+    private Random rng;
     // private int weight;
 
     public Neuron(int inputCount, boolean rawInputAllowed, int bias) {
@@ -25,6 +28,8 @@ public class Neuron {
         MAX_SIZE = inputCount;
 
         this.bias = bias;
+
+        rng = new Random();
     }
 
     public float getOutput() {
@@ -45,7 +50,7 @@ public class Neuron {
             System.out.println("Error: this neuron accepts neurons as an input only.");
             return false;
         }
-        if (isFull()) {
+        if (!isFull()) {
             rawInput[inputCount] = input;
             inputCount++;
 
@@ -61,7 +66,7 @@ public class Neuron {
             System.out.println("Error: this neuron accepts raw inputs as an input only.");
             return false;
         }
-        if (isFull()) {
+        if (!isFull()) {
             inputNeurons[inputCount] = input;
             inputCount++;
 
