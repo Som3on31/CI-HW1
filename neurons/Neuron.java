@@ -1,3 +1,4 @@
+package neurons;
 /*
  * @author AR
  * 
@@ -17,6 +18,8 @@ public class Neuron {
     private float bias;
     private Random rng;
     private float[] weights;
+
+    private float learningRate;
     // private int weight;
 
     public Neuron(int inputCount, boolean rawInputAllowed, int bias) {
@@ -26,7 +29,6 @@ public class Neuron {
             inputNeurons = new Neuron[inputCount];
         MAX_SIZE = inputCount;
         this.inputCount = 0;
-        MAX_SIZE = inputCount;
 
         this.bias = bias;
         rng = new Random();
@@ -42,8 +44,8 @@ public class Neuron {
                 totalValue += rawInput[i] * weights[i];
 
         if (inputNeurons != null)
-            for (Neuron neuron : inputNeurons)
-                totalValue += neuron.getOutput();
+            for (int i=0;i<MAX_SIZE;i++)
+                totalValue += inputNeurons[i].getOutput() * weights[i];
 
         return totalValue + bias;
     }
