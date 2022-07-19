@@ -1,3 +1,5 @@
+import neurons.Neuron;
+
 public class TestPlace{
 
     private final static String helloMSG = "Hello!";
