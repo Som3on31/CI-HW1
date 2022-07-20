@@ -5,7 +5,7 @@ import neurons.Neuron;
 public class NeuralNetwork {
 
     private LinkedList<Neuron> inputs;
-    private LinkedList<Neuron>[] hiddenLayers;
+    private LinkedList[] hiddenLayers;
     private LinkedList<Neuron> outputs;
 
     //Maximum size of inputs,hidden layers, neurons per layer and outputs
