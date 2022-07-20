@@ -1,8 +1,9 @@
 package neurons;
 
 public interface Perceptron{
+    boolean addInput(Perceptron neuron);
     float getOutput();
 
-    boolean isNull();
+    boolean isEmpty();
     boolean isFull();
 }

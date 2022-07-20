@@ -6,11 +6,12 @@ package neurons;
  * </p>
  */
 import java.util.Random;
+import java.util.LinkedList;
 
 
-public class Neuron {
+public class Neuron implements Perceptron{
 
-    private Neuron[] inputNeurons;
+    private Perceptron[] inputNeurons;
     private float[] rawInput;
     private int inputCount;
     private int MAX_SIZE;
@@ -66,7 +67,7 @@ public class Neuron {
         return false;
     }
 
-    public boolean addInput(Neuron input) {
+    public boolean addInput(Perceptron input) {
         if (rawInput == null) {
             System.out.println("Error: this neuron accepts raw inputs as an input only.");
             return false;
