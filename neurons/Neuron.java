@@ -11,42 +11,43 @@ import java.util.LinkedList;
 
 public class Neuron implements Perceptron{
 
-    private Perceptron[] inputNeurons;
-    private float[] rawInput;
+    private LinkedList<Perceptron> inputNeurons;
+    private LinkedList<Float> rawInput;
     private int inputCount;
     private int MAX_SIZE;
 
     private float bias;
     private Random rng;
-    private float[] weights;
+    private LinkedList<Float> weights;
 
     private float learningRate;
-    // private int weight;
 
-    public Neuron(int inputCount, boolean rawInputAllowed, int bias) {
+    public Neuron(int inputCount, boolean rawInputAllowed, int bias, float learningRate) {
         if (rawInputAllowed)
-            rawInput = new float[inputCount];
+            rawInput = new LinkedList<>();
         else
-            inputNeurons = new Neuron[inputCount];
+            inputNeurons = new LinkedList<>();
         MAX_SIZE = inputCount;
         this.inputCount = 0;
 
         this.bias = bias;
         rng = new Random();
-        weights = new float[inputCount];
+        weights = new LinkedList<>();
 
-        for(int i=0;i<inputCount;i++) weights[i] = rng.nextInt(10);
+        this.learningRate = learningRate;
+
+        for(int i=0;i<inputCount;i++) weights.add(rng.nextFloat());
     }
 
     public float getOutput() {
         float totalValue = 0;
         if (rawInput != null)
             for (int i=0;i<MAX_SIZE;i++)
-                totalValue += rawInput[i] * weights[i];
+                totalValue += rawInput.get(i) * weights.get(i);
 
         if (inputNeurons != null)
             for (int i=0;i<MAX_SIZE;i++)
-                totalValue += inputNeurons[i].getOutput() * weights[i];
+                totalValue += inputNeurons.get(i).getOutput() * weights.get(i);
 
         return totalValue + bias;
     }
@@ -57,7 +58,7 @@ public class Neuron implements Perceptron{
             return false;
         }
         if (!isFull()) {
-            rawInput[inputCount] = input;
+            rawInput.add(input);
             inputCount++;
 
             System.out.println("Successfully added " + input);
@@ -73,7 +74,7 @@ public class Neuron implements Perceptron{
             return false;
         }
         if (!isFull()) {
-            inputNeurons[inputCount] = input;
+            inputNeurons.add(input);
             inputCount++;
 
             System.out.println("Successfully added " + input);
@@ -81,6 +82,10 @@ public class Neuron implements Perceptron{
         }
         System.out.println("Error: The input array is full.");
         return false;
+    }
+
+    public void getNetworkData(){
+        
     }
 
     public boolean isEmpty() {
