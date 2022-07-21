@@ -6,4 +6,5 @@ public interface Perceptron{
 
     boolean isEmpty();
     boolean isFull();
+    float getError();
 }

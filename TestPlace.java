@@ -1,4 +1,4 @@
-import neurons.Neuron;
+import neurons.*;
 
 public class TestPlace{
 
@@ -6,12 +6,14 @@ public class TestPlace{
 
     public static void main(String[] args){
         System.out.println(helloMSG);
-        Neuron neuron_prototype = new Neuron(4, true, 0);
+        InputNeuron neuron_prototype = new InputNeuron(4, true, 0,0.1f);
         neuron_prototype.addInput(1);
         neuron_prototype.addInput(2);
         neuron_prototype.addInput(9);
         neuron_prototype.addInput(7);
         neuron_prototype.addInput(99999);
+        neuron_prototype.addInput(433);
+        neuron_prototype.addInput(777);
 
         boolean full = neuron_prototype.isFull();
         System.out.println(neuron_prototype.getOutput());
