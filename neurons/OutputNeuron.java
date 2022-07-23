@@ -34,5 +34,11 @@ public class OutputNeuron implements Perceptron{
         
         return 0;
     }
+
+    @Override
+    public boolean addInput(float input) {
+        // TODO Auto-generated method stub
+        return false;
+    }
     
 }

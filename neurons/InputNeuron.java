@@ -35,8 +35,11 @@ public class InputNeuron implements Perceptron {
 
         this.learningRate = learningRate;
 
-        for (int i = 0; i < inputCount; i++)
-            weights.add(rng.nextFloat());
+        for (int i = 0; i < inputCount; i++){
+            int minus = rng.nextInt(100) > 49 ? 1 : -1;
+            weights.add(rng.nextFloat() * minus);
+        }
+            
     }
 
     public float getOutput() {
@@ -69,7 +72,7 @@ public class InputNeuron implements Perceptron {
     }
 
     public boolean addInput(Perceptron input) {
-        if (rawInputs == null) {
+        if (inputNeurons == null) {
             System.out.println("Error: this neuron accepts raw inputs as an input only.");
             return false;
         }
