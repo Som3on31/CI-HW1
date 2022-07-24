@@ -8,7 +8,7 @@ public class TestPlace {
 
     public static void main(String[] args) {
         System.out.println(helloMSG);
-        InputNeuron neuron_prototype = new InputNeuron(4, true, 0, 0.1f);
+        Neuron neuron_prototype = new Neuron(4, true, 0,0);
         neuron_prototype.addInput(1);
         neuron_prototype.addInput(2);
         neuron_prototype.addInput(9);
@@ -27,12 +27,12 @@ public class TestPlace {
         int inputCount = 5;
         
         for (int i = 0; i < 5; i++) {
-            Perceptron p = new InputNeuron(1, true, 0, 0.1f);
+            Perceptron p = new Neuron(1, true, 0,0);
             p.addInput(rng.nextInt(10));
             inputs.add(p);
         }
 
-        Perceptron output = new InputNeuron(5, false, 0, 0.1f);
+        Perceptron output = new Neuron(5, false, 0,0);
 
         for(int i=0;i<inputs.size();i++){
             output.addInput(inputs.get(i));

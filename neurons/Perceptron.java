@@ -7,5 +7,11 @@ public interface Perceptron{
 
     boolean isEmpty();
     boolean isFull();
-    float getError();
+
+    /**
+     * Returns error
+     * @param expected
+     * @return 
+     */
+    float getError(float result,float expected);
 }

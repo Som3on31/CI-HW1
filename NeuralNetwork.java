@@ -30,7 +30,7 @@ public class NeuralNetwork {
         outputs = new LinkedList<>();
     }
 
-    public boolean addInput(InputNeuron newInput) {
+    public boolean addInput(Neuron newInput) {
         if (inputs.size() < inputSize) {
             inputs.add(newInput);
             return true;
@@ -43,7 +43,7 @@ public class NeuralNetwork {
         return false;
     }
 
-    public boolean addOutput(OutputNeuron newOutput) {
+    public boolean addOutput(Neuron newOutput) {
         if (inputs.size() < inputSize) {
             outputs.add(newOutput);
             return true;
