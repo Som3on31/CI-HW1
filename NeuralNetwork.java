@@ -162,7 +162,11 @@ public class NeuralNetwork {
         }
     }
 
-    public void train(int maxEpoch){
+    public void train(int maxEpoch,float targetAcc){
+        for(int currentEpoch = 1;currentEpoch<=maxEpoch;currentEpoch++){
+            
+        }
+
 
     }
 
