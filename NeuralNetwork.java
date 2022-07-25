@@ -53,6 +53,44 @@ public class NeuralNetwork {
         System.out.println("Construction complete");
     }
 
+    @SuppressWarnings("unchecked")
+    public NeuralNetwork(int inputNumber, int hiddenLayerCount, int hiddenPerLayer, int outputNumber, int weight,
+            int learningRate) {
+
+        inputSize = inputNumber;
+        currentInput = 0;
+        this.hiddenLayerSize = hiddenLayerCount;
+        neuronPerHidden = hiddenPerLayer;
+        outputSize = outputNumber;
+
+        inputs = new LinkedList<>();
+
+        hiddenLayers = new LinkedList[hiddenLayerCount];
+        for (int i = 0; i < hiddenLayerCount; i++)
+            hiddenLayers[i] = new LinkedList<>();
+
+        outputs = new LinkedList<>();
+
+        for (int i = 0; i < outputSize; i++) {
+            outputs.add(new Neuron(hiddenPerLayer, false, weight, 0, learningRate));
+        }
+
+        for (int i = 0; i < inputNumber; i++) {
+            inputs.add(new Neuron(1, true, weight, 0, 0));
+        }
+
+        for (int i = 0; i < hiddenLayerCount; i++) {
+            for (int j = 0; j < neuronPerHidden; j++) {
+                boolean nearInputs = i == 0;
+                int inputForHidden = nearInputs ? inputNumber : hiddenPerLayer;
+                hiddenLayers[i].add(new Neuron(inputForHidden, false, 0, learningRate));
+            }
+        }
+
+        connect();
+
+    }
+
     public boolean addInput(float newInput) {
         if (currentInput < inputSize) {
             inputs.get(currentInput).addInput(newInput);
@@ -60,6 +98,11 @@ public class NeuralNetwork {
             return true;
         }
         System.out.println("Error: input is full.");
+        return false;
+    }
+
+    public boolean changeInput(int pos,float newInput){
+        inputs.get(pos).changeInput(pos,newInput);
         return false;
     }
 
@@ -118,4 +161,9 @@ public class NeuralNetwork {
 
         }
     }
+
+    public void train(int maxEpoch){
+
+    }
+
 }
