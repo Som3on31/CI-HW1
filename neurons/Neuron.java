@@ -41,6 +41,24 @@ public class Neuron implements Perceptron {
 
     }
 
+    public Neuron(int inputCount, boolean rawInputAllowed,float weight, int bias, int learningRate) {
+        if (rawInputAllowed)
+            rawInputs = new LinkedList<>();
+        else
+            inputNeurons = new LinkedList<>();
+        MAX_SIZE = inputCount;
+        this.inputCount = 0;
+
+        this.bias = bias;
+        weights = new LinkedList<>();
+
+        this.learningRate = learningRate;
+
+        for (int i = 0; i < inputCount; i++) {
+            weights.add(weight);
+        }
+    }
+
     public float getOutput() {
         float totalValue = 0;
         if (rawInputs != null)

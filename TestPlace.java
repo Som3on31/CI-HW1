@@ -42,5 +42,29 @@ public class TestPlace {
 
         System.out.println(output.getOutput());
         System.out.println(output.useActivationFn(output.getOutput()));
+
+        System.out.println("\n------Test 3: constructing a network-------");
+
+        int inputNum = 3;
+        int hiddenLayerCount = 1;
+        int hiddenPerLayer = 6;
+        int outputNum = 2;
+        NeuralNetwork nn_proto = new NeuralNetwork(inputNum,hiddenLayerCount, hiddenPerLayer, outputNum,0);
+
+        // n0.addInput(1);
+        // n1.addInput(5);
+        // n2.addInput(2);
+
+        nn_proto.addInput(1);
+        nn_proto.addInput(5);
+        nn_proto.addInput(2);
+        nn_proto.addInput(999);
+        nn_proto.addInput(55555555);
+
+        float[] outputArray = nn_proto.getOutput();
+        for (float result:outputArray){
+            System.out.println(result + " ");
+        }
+        
     }
 }
