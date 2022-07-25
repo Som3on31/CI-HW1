@@ -9,16 +9,19 @@ public class NeuralNetwork {
     private LinkedList<Perceptron> outputs;
 
     // Maximum size of inputs,hidden layers, neurons per layer and outputs
-    int inputSize;
-    int hiddenLayerSize;
-    int neuronPerHidden;
-    int outputSize;
+    private int inputSize;
+    private int currentInput;
+    private int hiddenLayerSize;
+    private int neuronPerHidden;
+    private int outputSize;
 
     @SuppressWarnings("unchecked")
-    public NeuralNetwork(int inputNumber, int hiddenLayerCount, int neuronPerLayer, int outputNumber) {
+    public NeuralNetwork(int inputNumber, int hiddenLayerCount, int hiddenPerLayer, int outputNumber,
+            int learningRate) {
         inputSize = inputNumber;
+        currentInput = 0;
         this.hiddenLayerSize = hiddenLayerCount;
-        neuronPerHidden = neuronPerLayer;
+        neuronPerHidden = hiddenPerLayer;
         outputSize = outputNumber;
 
         inputs = new LinkedList<>();
@@ -28,31 +31,40 @@ public class NeuralNetwork {
             hiddenLayers[i] = new LinkedList<>();
 
         outputs = new LinkedList<>();
+
+        for (int i = 0; i < outputSize; i++) {
+            outputs.add(new Neuron(hiddenPerLayer, false, 0, learningRate));
+        }
+
+        for (int i = 0; i < inputNumber; i++) {
+            inputs.add(new Neuron(1, true, 0, 0));
+        }
+
+        for (int i = 0; i < hiddenLayerCount; i++) {
+            for (int j = 0; j < neuronPerHidden; j++) {
+                boolean nearInputs = i == 0;
+                int inputForHidden = nearInputs ? inputNumber : hiddenPerLayer;
+                hiddenLayers[i].add(new Neuron(inputForHidden, false, 0, learningRate));
+            }
+        }
+
+        connect();
+
+        System.out.println("Construction complete");
     }
 
-    public boolean addInput(Neuron newInput) {
-        if (inputs.size() < inputSize) {
-            inputs.add(newInput);
+    public boolean addInput(float newInput) {
+        if (currentInput < inputSize) {
+            inputs.get(currentInput).addInput(newInput);
+            currentInput++;
             return true;
         }
-        return false;
-    }
-
-    public boolean addHidden() {
-
-        return false;
-    }
-
-    public boolean addOutput(Neuron newOutput) {
-        if (inputs.size() < inputSize) {
-            outputs.add(newOutput);
-            return true;
-        }
+        System.out.println("Error: input is full.");
         return false;
     }
 
     public float[] getOutput() {
-        float[] results = new float[outputSize + 1]; // Creates an array size of output size plus one for margin error.
+        float[] results = new float[outputSize]; // Creates an array size of output size
 
         for (int i = 0; i < results.length; i++)
             results[i] = outputs.get(i).getOutput(); // Get results first
@@ -64,7 +76,7 @@ public class NeuralNetwork {
     /**
      * Connects all neurons
      */
-    public void connect() {
+    private void connect() {
         if (hiddenLayers == null) {
             for (int i = 0; i < outputSize; i++) {
                 Perceptron currentP_Output = outputs.get(i);
@@ -103,7 +115,7 @@ public class NeuralNetwork {
                     currentP_Hidden.addInput(currentP_Input);
                 }
             }
-            
+
         }
     }
 }
