@@ -28,7 +28,7 @@ public class TestPlace {
         LinkedList<Perceptron> inputs = new LinkedList<>();
         int inputCount = 5;
         
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < inputCount; i++) {
             Perceptron p = new Neuron(1, true, 0,0);
             p.addInput(rng.nextInt(10));
             inputs.add(p);
@@ -66,5 +66,9 @@ public class TestPlace {
             System.out.println(result + " ");
         }
         
+        float[] expectedOutput = {2,3};
+
+        
+
     }
 }
