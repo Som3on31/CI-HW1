@@ -14,4 +14,6 @@ public interface Perceptron{
      * @return 
      */
     float getError(float result,float expected);
+
+    float useActivationFn(float output);
 }

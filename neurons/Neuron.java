@@ -134,19 +134,21 @@ public class Neuron implements Perceptron {
 
     @Override
     public float getError(float result, float expected) {
-        return result - expected;
+        return expected - result / expected;
     }
 
     public float useActivationFn(float input) {
         return Math.max(0, input);
     }
 
-    public float useDerivFn(float input){
-        return input > 0 ? 1 : 0;
+    public int useDerivFn(float input){
+        return input > 0f ? 1 : 0;
     }
 
-    public void updateWeight() {
-        
+    public void updateWeight(int pos,float error,float derivFnValue) {
+        if (pos-1 > 0) weights.set(pos-1,weights.get(pos-1) - learningRate * error * derivFnValue);
+        if (pos+1 < MAX_SIZE) weights.set(pos+1,weights.get(pos-1) - learningRate * error * derivFnValue);
+        weights.set(pos,weights.get(pos) - learningRate * error * derivFnValue);
     }
 
 }

@@ -17,7 +17,9 @@ public class TestPlace {
         neuron_prototype.addInput(433);
         neuron_prototype.addInput(777);
 
-        System.out.println(neuron_prototype.getOutput());
+        float output_prototype = neuron_prototype.getOutput();
+        System.out.println(output_prototype);
+        System.out.println(neuron_prototype.useActivationFn(output_prototype));
         System.out.println("Full? : " + neuron_prototype.isFull());
         System.out.println("Empty? :" + neuron_prototype.isEmpty());
         System.out.println("\n------Test 2: when all are connected-------");
@@ -39,5 +41,6 @@ public class TestPlace {
         }
 
         System.out.println(output.getOutput());
+        System.out.println(output.useActivationFn(output.getOutput()));
     }
 }
