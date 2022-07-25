@@ -28,4 +28,6 @@ public interface Perceptron{
      */
     float useActivationFn(float output);
     int useDerivFn(float output);
+
+    void updateWeight(int layer,int pos,float error,float kek);
 }

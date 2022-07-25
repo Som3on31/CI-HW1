@@ -168,7 +168,7 @@ public class Neuron implements Perceptron {
         return input > 0f ? 1 : 0;
     }
 
-    public void updateWeight(int pos,float error,float derivFnValue) {
+    public void updateWeight(int layer,int pos,float error,float derivFnValue) {
         if (pos-1 > 0) weights.set(pos-1,weights.get(pos-1) - learningRate * error * derivFnValue);
         if (pos+1 < MAX_SIZE) weights.set(pos+1,weights.get(pos-1) - learningRate * error * derivFnValue);
         weights.set(pos,weights.get(pos) - learningRate * error * derivFnValue);
