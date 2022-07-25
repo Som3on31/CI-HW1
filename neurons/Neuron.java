@@ -108,6 +108,11 @@ public class Neuron implements Perceptron {
         return false;
     }
 
+    public float changeInput(int pos,float input){
+        float oldValue = rawInputs.set(pos,input);
+        return oldValue;
+    }
+
     /**
      * Returns a set of data of this neuron. This includes all inputs, weights and
      * bias
