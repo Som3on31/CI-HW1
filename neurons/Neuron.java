@@ -69,7 +69,7 @@ public class Neuron implements Perceptron {
             for (int i = 0; i < MAX_SIZE; i++)
                 totalValue += inputNeurons.get(i).getOutput() * weights.get(i);
 
-        return totalValue + bias;
+        return useDerivFn(totalValue + bias);
     }
 
     public float finalizeOutput() {
@@ -168,10 +168,30 @@ public class Neuron implements Perceptron {
         return input > 0f ? 1 : 0;
     }
 
-    public void updateWeight(int layer,int pos,float error,float derivFnValue) {
-        if (pos-1 > 0) weights.set(pos-1,weights.get(pos-1) - learningRate * error * derivFnValue);
-        if (pos+1 < MAX_SIZE) weights.set(pos+1,weights.get(pos-1) - learningRate * error * derivFnValue);
-        weights.set(pos,weights.get(pos) - learningRate * error * derivFnValue);
+    public void updateWeight(int pos,float newValue) {
+        weights.set(pos,newValue);
+    }
+
+    @Override
+    public void updateBias(float newValue) {
+        
+        
+    }
+
+    @Override
+    public LinkedList<Float> weights() {
+        return weights;
+    }
+
+    @Override
+    public float bias() {
+        return bias;
+    }
+
+    @Override
+    public float lr() {
+        // TODO Auto-generated method stub
+        return learningRate;
     }
 
 }
