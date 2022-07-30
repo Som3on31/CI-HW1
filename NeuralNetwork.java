@@ -1,4 +1,5 @@
 import java.util.LinkedList;
+import java.util.Random;
 
 import neurons.*;
 
@@ -101,8 +102,8 @@ public class NeuralNetwork {
         return false;
     }
 
-    public boolean changeInput(int pos,float newInput){
-        inputs.get(pos).changeInput(pos,newInput);
+    public boolean changeInput(int pos, float newInput) {
+        inputs.get(pos).changeInput(pos, newInput);
         return false;
     }
 
@@ -162,11 +163,72 @@ public class NeuralNetwork {
         }
     }
 
-    public void train(int maxEpoch,float targetAcc){
-        for(int currentEpoch = 1;currentEpoch<=maxEpoch;currentEpoch++){
-            
+    /**
+     * Do front propagation to get result and then do back propagation to correct
+     * weights used in the network.
+     * 
+     * @param maxEpoch  Maximum number of rounds to be allowed during training
+     * @param targetAcc The second condition to halt training process if the network
+     *                  reaches a desired accuracy
+     * @param expected  An array for use in training
+     */
+    public void train(int maxEpoch, float targetAcc, float[] expected) {
+        if (expected.length != outputSize) {
+            System.out.println("Error: Expected output array should have the same size as output count");
+            return;
         }
 
+        Random rng = new Random();
+
+        for (int currentEpoch = 1; currentEpoch <= maxEpoch; currentEpoch++) {
+            for (int i = 0; i < inputSize; i++) {
+                inputs.get(i).changeInput(i, rng.nextInt(10));
+            }
+
+            float[] predicted = getOutput();
+            float[] error = new float[outputSize];
+
+            for (int i = 0; i < outputSize; i++) {
+                error[i] = predicted[i] - expected[i];
+            }
+
+            // back propagates here
+
+            // float[] fstGradiants = new float[outputSize];
+
+            for (int i = 0; i < outputSize; i++) {
+                for (int j = 0; j < neuronPerHidden; j++) {
+                    Perceptron n = outputs.get(i);
+                    float derivFnValue = n.useDerivFn(predicted[i]);
+                    float oldWeight = n.weights().get(j);
+                    float learningRate = n.lr();
+                    outputs.get(i).updateWeight(j, oldWeight + learningRate * error[i] * derivFnValue);
+                }
+            }
+
+            float[] localGrads = new float[neuronPerHidden];
+
+            for (int i = hiddenLayerSize; i >= 0; i--) {
+                //edge number j
+                for (int j = 0; j < neuronPerHidden; j++) {
+
+                    
+                    
+
+                    if (i == hiddenLayerSize){
+
+                    }else{
+                        for (int k = 0; k < neuronPerHidden; k++) {
+                        
+                            hiddenLayers[i].get(j).updateWeight(k, );
+                        }
+                    }
+                    
+                }
+            }
+
+            // changes weight
+        }
 
     }
 

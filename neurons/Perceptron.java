@@ -1,5 +1,7 @@
 package neurons;
 
+import java.util.LinkedList;
+
 public interface Perceptron{
     boolean addInput(Perceptron neuron);
     boolean addInput(float input);
@@ -29,5 +31,10 @@ public interface Perceptron{
     float useActivationFn(float output);
     int useDerivFn(float output);
 
-    void updateWeight(int layer,int pos,float error,float kek);
+    void updateWeight(int pos,float derivFnValue);
+    void updateBias(float newValue);
+
+    LinkedList<Float> weights();
+    float bias();
+    float lr();
 }
