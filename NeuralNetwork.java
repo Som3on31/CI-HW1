@@ -104,7 +104,7 @@ public class NeuralNetwork {
     }
 
     public boolean changeInput(int pos, float newInput) {
-        inputs.get(pos).changeInput(pos, newInput);
+        inputs.get(pos).changeInput(0, newInput);
         return false;
     }
 
@@ -193,69 +193,80 @@ public class NeuralNetwork {
                 error[i] = predicted[i] - expected[i];
             }
 
-            //report error of each output
-            if (currentEpoch%10==0) {
+            // report error of each output
+            if (currentEpoch % 10 == 0) {
                 System.out.print("epoch:" + currentEpoch);
-                for (int i=0;i<error.length;i++){
+                for (int i = 0; i < error.length; i++) {
                     System.out.print("error " + i + " :" + error[i] + " ");
-                    if (i==error.length-1) System.out.println();
+                    if (i == error.length - 1)
+                        System.out.println();
                 }
-            }           
+            }
 
             // backpropagates here
+            // get gradient of each neuron first (except input neurons lol)
+            float[][] localGrads = new float[hiddenLayerSize + 1][neuronPerHidden]; // for hidden + output
+
             for (int i = 0; i < outputSize; i++) {
                 for (int j = 0; j < neuronPerHidden; j++) {
                     Perceptron n = outputs.get(i);
                     float derivFnValue = n.useDerivFn(predicted[i]);
-                    float oldWeight = n.weights().get(j);
-                    float learningRate = n.lr();
-                    outputs.get(i).updateWeight(j, oldWeight + learningRate * error[i] * derivFnValue);
+
+                    localGrads[hiddenLayerSize + 1][j] = (-1) * (error[i] - expected[i]) * derivFnValue;
                 }
             }
 
-            float[] localGrads = new float[neuronPerHidden];
-
-            // from hidden layers
-            for (int i = hiddenLayerSize-1; i >= 0; i--) {
-                // current hidden neuron j layer i
+            for (int i = hiddenLayerSize - 1; i >= 0; i--) {
                 for (int j = 0; j < neuronPerHidden; j++) {
                     Perceptron currentP = hiddenLayers[i].get(j);
-                    float currentGrad = currentP.useDerivFn(currentP.getOutput());
-                    if (i == hiddenLayerSize) {
-                        float sumOfDelAndWeight = 0;
-                        for (int k = 0; k < outputSize; k++) {
-                            Perceptron currentO = outputs.get(k);
-                            sumOfDelAndWeight += (error[k] - currentO.getOutput()) * currentO.weights().get(j);
+                    float derivOfSelf = currentP.useDerivFn(currentP.getOutputRaw());
+                    float sumOfGradAndWeight = 0;
+                    if (i == hiddenLayerSize - 1) {
 
+                        for (int k = 0; k < outputs.size(); k++) {
+                            LinkedList<Float> outputWeights = outputs.get(k).weights();
+                            for (int k1 = 0; k1 < outputWeights.size(); k++) {
+                                sumOfGradAndWeight += localGrads[i + 1][k] * outputWeights.get(k);
+                            }
                         }
 
-                        currentGrad += sumOfDelAndWeight;
-                        localGrads[j] = currentGrad;
-
-                        for (int k = 0; k < outputSize; k++) {
-                            float lr = currentP.lr();
-                            hiddenLayers[i].get(j).updateWeight(k, currentP.weights().get(j) + lr * currentGrad);
-                        }
                     } else {
-                        float sumOfDelAndWeight = 0;
                         for (int k = 0; k < neuronPerHidden; k++) {
-                            Perceptron currentO = hiddenLayers[i + 1].get(k);
-                            sumOfDelAndWeight += localGrads[k] * currentO.weights().get(j);
-
-                        }
-
-                        currentGrad += sumOfDelAndWeight;
-                        localGrads[j] = currentGrad;
-
-                        for (int k = 0; k < neuronPerHidden; k++) {
-                            float lr = currentP.lr();
-                            hiddenLayers[i].get(j).updateWeight(k, currentP.weights().get(j) + lr * currentGrad);
+                            LinkedList<Float> outputWeights = hiddenLayers[i + 1].get(k).weights();
+                            for (int k1 = 0; k1 < outputWeights.size(); k++) {
+                                sumOfGradAndWeight += localGrads[i + 1][k] * outputWeights.get(k);
+                            }
                         }
                     }
-
+                    localGrads[i][j] = derivOfSelf * sumOfGradAndWeight;
                 }
             }
-            
+
+            //update weights here
+            //for outputs
+            for (int i=0;i<outputs.size();i++){
+                Perceptron currentP = outputs.get(i);
+                LinkedList<Float> outputWeights = currentP.weights();
+
+                for (int j=0;j<neuronPerHidden;j++){
+                    currentP.updateWeight(j, outputWeights.get(i) + currentP.lr() * localGrads[hiddenLayerSize][j] * currentP.getOutput());
+                }
+            }
+            //for hidden
+            for (int i=hiddenLayerSize-1;i>=0;i--){
+
+                int weightsToChange = i==0 ? inputSize : neuronPerHidden;
+
+                for (int j=0;j<neuronPerHidden;j++){
+                    Perceptron currentH = hiddenLayers[i].get(j);
+                    LinkedList<Float> hiddenWeights = currentH.weights();
+
+                    for (int k=0;k<weightsToChange;k++){
+                        currentH.updateWeight(k, hiddenWeights.get(k) + currentH.lr() * currentH.getOutput() * localGrads[i][j]);
+                    }
+                }
+            }
+
         }
 
     }

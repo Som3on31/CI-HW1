@@ -66,9 +66,11 @@ public class TestPlace {
             System.out.println(result + " ");
         }
         
-        float[] expectedOutput = {2,3};
+        // float[] expectedOutput = {2,3};
 
-        
-
+        Perceptron test = new Neuron(1, true, 0, 0, 0);
+        test.addInput(3);
+        test.changeInput(0, 5);
+        System.out.println("e");
     }
 }
