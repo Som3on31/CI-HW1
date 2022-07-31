@@ -59,7 +59,8 @@ public class Neuron implements Perceptron {
         }
     }
 
-    public float getOutput() {
+    @Override
+    public float getOutputRaw() {
         float totalValue = 0;
         if (rawInputs != null)
             for (int i = 0; i < MAX_SIZE; i++)
@@ -69,7 +70,11 @@ public class Neuron implements Perceptron {
             for (int i = 0; i < MAX_SIZE; i++)
                 totalValue += inputNeurons.get(i).getOutput() * weights.get(i);
 
-        return useDerivFn(totalValue + bias);
+        return totalValue;
+    }
+
+    public float getOutput() {
+        return useDerivFn(getOutputRaw() + bias);
     }
 
     public float finalizeOutput() {
@@ -109,7 +114,8 @@ public class Neuron implements Perceptron {
     }
 
     public float changeInput(int pos,float input){
-        float oldValue = rawInputs.set(pos,input);
+        float oldValue = rawInputs.get(pos);
+        rawInputs.set(pos, input);
         return oldValue;
     }
 

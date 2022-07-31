@@ -7,6 +7,7 @@ public interface Perceptron{
     boolean addInput(float input);
     float changeInput(int pos,float newInput);
     float getOutput();
+    float getOutputRaw();
 
     boolean isEmpty();
     /**
@@ -31,7 +32,7 @@ public interface Perceptron{
     float useActivationFn(float output);
     int useDerivFn(float output);
 
-    void updateWeight(int pos,float derivFnValue);
+    void updateWeight(int pos,float newValue);
     void updateBias(float newValue);
 
     LinkedList<Float> weights();
