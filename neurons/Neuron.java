@@ -21,7 +21,7 @@ public class Neuron implements Perceptron {
     private LinkedList<Float> weights;
     private float learningRate;
 
-    public Neuron(int inputCount, boolean rawInputAllowed, int bias, int learningRate) {
+    public Neuron(int inputCount, boolean rawInputAllowed, int bias, float learningRate) {
         if (rawInputAllowed)
             rawInputs = new LinkedList<>();
         else
@@ -41,7 +41,7 @@ public class Neuron implements Perceptron {
 
     }
 
-    public Neuron(int inputCount, boolean rawInputAllowed,float weight, int bias, int learningRate) {
+    public Neuron(int inputCount, boolean rawInputAllowed,float weight, int bias, float learningRate) {
         if (rawInputAllowed)
             rawInputs = new LinkedList<>();
         else
@@ -190,7 +190,6 @@ public class Neuron implements Perceptron {
 
     @Override
     public float lr() {
-        // TODO Auto-generated method stub
         return learningRate;
     }
 

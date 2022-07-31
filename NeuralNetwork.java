@@ -18,7 +18,7 @@ public class NeuralNetwork {
 
     @SuppressWarnings("unchecked")
     public NeuralNetwork(int inputNumber, int hiddenLayerCount, int hiddenPerLayer, int outputNumber,
-            int learningRate) {
+            float learningRate) {
         inputSize = inputNumber;
         currentInput = 0;
         this.hiddenLayerSize = hiddenLayerCount;
@@ -56,7 +56,7 @@ public class NeuralNetwork {
 
     @SuppressWarnings("unchecked")
     public NeuralNetwork(int inputNumber, int hiddenLayerCount, int hiddenPerLayer, int outputNumber, int weight,
-            int learningRate) {
+            float learningRate) {
 
         inputSize = inputNumber;
         currentInput = 0;
@@ -90,6 +90,7 @@ public class NeuralNetwork {
 
         connect();
 
+        System.out.println("Construction complete");
     }
 
     public boolean addInput(float newInput) {
@@ -169,7 +170,7 @@ public class NeuralNetwork {
      * 
      * @param maxEpoch  Maximum number of rounds to be allowed during training
      * @param targetAcc The second condition to halt training process if the network
-     *                  reaches a desired accuracy
+     *                  reaches a desired accuracy, in percent
      * @param expected  An array for use in training
      */
     public void train(int maxEpoch, float targetAcc, float[] expected) {
@@ -182,7 +183,7 @@ public class NeuralNetwork {
 
         for (int currentEpoch = 1; currentEpoch <= maxEpoch; currentEpoch++) {
             for (int i = 0; i < inputSize; i++) {
-                inputs.get(i).changeInput(i, rng.nextInt(10));
+                inputs.get(i).changeInput(0, rng.nextInt(10));
             }
 
             float[] predicted = getOutput();
@@ -192,10 +193,16 @@ public class NeuralNetwork {
                 error[i] = predicted[i] - expected[i];
             }
 
-            // back propagates here
+            //report error of each output
+            if (currentEpoch%10==0) {
+                System.out.print("epoch:" + currentEpoch);
+                for (int i=0;i<error.length;i++){
+                    System.out.print("error " + i + " :" + error[i] + " ");
+                    if (i==error.length-1) System.out.println();
+                }
+            }           
 
-            // float[] fstGradiants = new float[outputSize];
-
+            // backpropagates here
             for (int i = 0; i < outputSize; i++) {
                 for (int j = 0; j < neuronPerHidden; j++) {
                     Perceptron n = outputs.get(i);
@@ -208,26 +215,47 @@ public class NeuralNetwork {
 
             float[] localGrads = new float[neuronPerHidden];
 
-            for (int i = hiddenLayerSize; i >= 0; i--) {
-                //edge number j
+            // from hidden layers
+            for (int i = hiddenLayerSize-1; i >= 0; i--) {
+                // current hidden neuron j layer i
                 for (int j = 0; j < neuronPerHidden; j++) {
+                    Perceptron currentP = hiddenLayers[i].get(j);
+                    float currentGrad = currentP.useDerivFn(currentP.getOutput());
+                    if (i == hiddenLayerSize) {
+                        float sumOfDelAndWeight = 0;
+                        for (int k = 0; k < outputSize; k++) {
+                            Perceptron currentO = outputs.get(k);
+                            sumOfDelAndWeight += (error[k] - currentO.getOutput()) * currentO.weights().get(j);
 
-                    
-                    
+                        }
 
-                    if (i == hiddenLayerSize){
+                        currentGrad += sumOfDelAndWeight;
+                        localGrads[j] = currentGrad;
 
-                    }else{
+                        for (int k = 0; k < outputSize; k++) {
+                            float lr = currentP.lr();
+                            hiddenLayers[i].get(j).updateWeight(k, currentP.weights().get(j) + lr * currentGrad);
+                        }
+                    } else {
+                        float sumOfDelAndWeight = 0;
                         for (int k = 0; k < neuronPerHidden; k++) {
-                        
-                            hiddenLayers[i].get(j).updateWeight(k, );
+                            Perceptron currentO = hiddenLayers[i + 1].get(k);
+                            sumOfDelAndWeight += localGrads[k] * currentO.weights().get(j);
+
+                        }
+
+                        currentGrad += sumOfDelAndWeight;
+                        localGrads[j] = currentGrad;
+
+                        for (int k = 0; k < neuronPerHidden; k++) {
+                            float lr = currentP.lr();
+                            hiddenLayers[i].get(j).updateWeight(k, currentP.weights().get(j) + lr * currentGrad);
                         }
                     }
-                    
+
                 }
             }
-
-            // changes weight
+            
         }
 
     }
