@@ -74,8 +74,10 @@ public class Neuron implements Perceptron {
     }
 
     public float getOutput() {
-        return useDerivFn(getOutputRaw() + bias);
+        return useActivationFn(getOutputRaw() + bias);
+//        return getOutputRaw() + bias;
     }
+
 
     public float finalizeOutput() {
         return 0f;
