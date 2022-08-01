@@ -1,5 +1,3 @@
-import java.io.BufferedInputStream;
-import java.io.DataInput;
 import java.io.File;
 import java.util.Scanner;
 
@@ -10,9 +8,11 @@ public class NetworkTest {
         int hiddenPerLayer = 6;
         int hiddenLayerCount = 1;
         int outputNumber = 1;
-        double lr = 0.0000000000000001;
+        double lr = 0.1;
         NeuralNetwork nn_test = new NeuralNetwork(inputNum, hiddenLayerCount, hiddenPerLayer, outputNumber,lr);
         for (int i=0;i<inputNum;i++)nn_test.addInput(0);
+
+        double scale = 0.001;
 
         try{
             File f = new File("./sample data.txt");
@@ -26,15 +26,16 @@ public class NetworkTest {
                 int row = intCount / 9;
                 int col = intCount % 9;
                 if (col < 8){
-                    dataInputs[row][col] = s.nextInt();
+                    dataInputs[row][col] = s.nextInt() * scale;
                 }else{
-                    expected[row] = s.nextInt();
+                    expected[row] = s.nextInt() * scale;
                 }
                 intCount++;
             }
 
             nn_test.train(500,dataInputs,expected);
 
+            s.close();
         }catch(Exception e){
             throw new Exception(e);
         }

@@ -2,10 +2,11 @@ package neurons;
 
 /*
  * @author AR
- * 
+ *
  * <p>This class is created to make a full use of the concept of a neuron as a unit
  * </p>
  */
+
 import java.util.Random;
 import java.util.LinkedList;
 
@@ -36,12 +37,12 @@ public class Neuron implements Perceptron {
 
         for (int i = 0; i < inputCount; i++) {
             int minus = rng.nextInt(100) > 49 ? 1 : -1;
-            weights.add(rng.nextDouble()  * minus);
+            weights.add(rng.nextDouble() * minus);
         }
 
     }
 
-    public Neuron(int inputCount, boolean rawInputAllowed,double weight, int bias, double learningRate) {
+    public Neuron(int inputCount, boolean rawInputAllowed, double weight, int bias, double learningRate) {
         if (rawInputAllowed)
             rawInputs = new LinkedList<>();
         else
@@ -115,7 +116,7 @@ public class Neuron implements Perceptron {
         return false;
     }
 
-    public double changeInput(int pos,double input){
+    public double changeInput(int pos, double input) {
         double oldValue = rawInputs.get(pos);
         rawInputs.set(pos, input);
         return oldValue;
@@ -172,18 +173,18 @@ public class Neuron implements Perceptron {
         return Math.max(0.001 * input, input);
     }
 
-    public double useDerivFn(double input){
+    public double useDerivFn(double input) {
         return input > 0 ? 1 : 0.001;
     }
 
-    public void updateWeight(int pos,double newValue) {
-        weights.set(pos,newValue);
+    public void updateWeight(int pos, double newValue) {
+        weights.set(pos, newValue);
     }
 
     @Override
     public void updateBias(double newValue) {
-        
-        
+
+
     }
 
     @Override

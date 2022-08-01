@@ -1,11 +1,10 @@
 import java.util.LinkedList;
-import java.util.Random;
-import java.util.Scanner;
 
 import neurons.*;
 
 public class NeuralNetwork {
 
+    // Linked List to store neurons
     private LinkedList<Perceptron> inputs;
     private LinkedList<Perceptron>[] hiddenLayers;
     private LinkedList<Perceptron> outputs;
@@ -169,9 +168,9 @@ public class NeuralNetwork {
      * Do front propagation to get result and then do back propagation to correct
      * weights used in the network.
      *
-     * @param maxEpoch  Maximum number of rounds to be allowed during training
+     * @param maxEpoch    Maximum number of rounds to be allowed during training
      * @param trainingSet A 2D array for use in training
-     * @param expected  An array for use in training
+     * @param expected    An array for use in training
      */
     public void train(int maxEpoch, double[][] trainingSet, double[] expected) {
         if (trainingSet.length != expected.length) {
@@ -188,15 +187,21 @@ public class NeuralNetwork {
             double[] error = new double[outputSize];
 
             for (int i = 0; i < outputSize; i++) {
-                error[i] = predicted[i] - expected[currentEpoch % 314];
+                error[i] = expected[currentEpoch % 314] - predicted[i];
             }
 
             // report error of each output
             System.out.print("epoch:" + currentEpoch + " ");
             for (int i = 0; i < error.length; i++) {
                 System.out.print("error " + i + " :" + error[i] + " ");
-                if (i == error.length - 1)
-                    System.out.println();
+                if (i == error.length - 1) {
+                    double mse = 0;
+                    for (int j = 0; j < error.length; j++) {
+                        mse += Math.pow(error[j],2);
+                    }
+                    System.out.println("mse: " + mse);
+                }
+
             }
 
             // backpropagates here
@@ -212,26 +217,26 @@ public class NeuralNetwork {
                 }
             }
 
+            //hidden layer i
             for (int i = hiddenLayerSize - 1; i >= 0; i--) {
+                //hidden neuron j layer i
                 for (int j = 0; j < neuronPerHidden; j++) {
                     Perceptron currentP = hiddenLayers[i].get(j);
                     double derivOfSelf = currentP.useDerivFn(currentP.getOutputRaw());
                     double sumOfGradAndWeight = 0;
+                    // if it is near output layer
                     if (i == hiddenLayerSize - 1) {
 
+                        // for each output neuron connected to hidden j layer i
                         for (int k = 0; k < outputs.size(); k++) {
-                            LinkedList<Double> outputWeights = outputs.get(k).weights();
-                            for (int k1 = 0; k1 < outputWeights.size(); k1++) {
-                                sumOfGradAndWeight += localGrads[i + 1][k1] * outputWeights.get(k1);
-                            }
+                            double outputWeightToJ = outputs.get(k).weights().get(j);
+                            sumOfGradAndWeight += localGrads[i + 1][k] * outputWeightToJ;
                         }
 
                     } else {
                         for (int k = 0; k < neuronPerHidden; k++) {
-                            LinkedList<Double> outputWeights = hiddenLayers[i + 1].get(k).weights();
-                            for (int k1 = 0; k1 < outputWeights.size(); k1++) {
-                                sumOfGradAndWeight += localGrads[i + 1][k1] * outputWeights.get(k1);
-                            }
+                            double outputWeightToJ = hiddenLayers[i + 1].get(k).weights().get(j);
+                            sumOfGradAndWeight += localGrads[i + 1][k] * outputWeightToJ;
                         }
                     }
                     localGrads[i][j] = derivOfSelf * sumOfGradAndWeight;
