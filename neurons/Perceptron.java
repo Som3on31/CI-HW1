@@ -4,10 +4,10 @@ import java.util.LinkedList;
 
 public interface Perceptron{
     boolean addInput(Perceptron neuron);
-    boolean addInput(float input);
-    float changeInput(int pos,float newInput);
-    float getOutput();
-    float getOutputRaw();
+    boolean addInput(double input);
+    double changeInput(int pos,double newInput);
+    double getOutput();
+    double getOutputRaw();
 
     boolean isEmpty();
     /**
@@ -19,23 +19,23 @@ public interface Perceptron{
     /**
      * Returns error
      * @param expected a value one wishes to see
-     * @param float a value gathered from using a perceptron
-     * @return a number of float number in (WIP)
+     * @param double a value gathered from using a perceptron
+     * @return a number of double number in (WIP)
      */
-    float getError(float result,float expected);
+    double getError(double result,double expected);
 
     /**
      * This function is used to determine the final result of an output from a perceptron
      * @param output a value gathered from using a perceptron
      * @return
      */
-    float useActivationFn(float output);
-    int useDerivFn(float output);
+    double useActivationFn(double output);
+    double useDerivFn(double output);
 
-    void updateWeight(int pos,float newValue);
-    void updateBias(float newValue);
+    void updateWeight(int pos,double newValue);
+    void updateBias(double newValue);
 
-    LinkedList<Float> weights();
-    float bias();
-    float lr();
+    LinkedList<Double> weights();
+    double bias();
+    double lr();
 }

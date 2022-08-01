@@ -12,16 +12,16 @@ import java.util.LinkedList;
 public class Neuron implements Perceptron {
 
     private LinkedList<Perceptron> inputNeurons;
-    private LinkedList<Float> rawInputs;
+    private LinkedList<Double> rawInputs;
     private int inputCount;
     private final int MAX_SIZE;
 
-    private float bias;
+    private double bias;
     private static Random rng = new Random();
-    private LinkedList<Float> weights;
-    private float learningRate;
+    private LinkedList<Double> weights;
+    private double learningRate;
 
-    public Neuron(int inputCount, boolean rawInputAllowed, int bias, float learningRate) {
+    public Neuron(int inputCount, boolean rawInputAllowed, int bias, double learningRate) {
         if (rawInputAllowed)
             rawInputs = new LinkedList<>();
         else
@@ -36,12 +36,12 @@ public class Neuron implements Perceptron {
 
         for (int i = 0; i < inputCount; i++) {
             int minus = rng.nextInt(100) > 49 ? 1 : -1;
-            weights.add(rng.nextFloat() * minus);
+            weights.add(rng.nextDouble()  * minus);
         }
 
     }
 
-    public Neuron(int inputCount, boolean rawInputAllowed,float weight, int bias, float learningRate) {
+    public Neuron(int inputCount, boolean rawInputAllowed,double weight, int bias, double learningRate) {
         if (rawInputAllowed)
             rawInputs = new LinkedList<>();
         else
@@ -60,11 +60,11 @@ public class Neuron implements Perceptron {
     }
 
     @Override
-    public float getOutputRaw() {
-        float totalValue = 0;
+    public double getOutputRaw() {
+        double totalValue = 0;
         if (rawInputs != null)
             for (int i = 0; i < MAX_SIZE; i++)
-                totalValue += rawInputs.get(i) * weights.get(i);
+                totalValue += rawInputs.get(i);
 
         if (inputNeurons != null)
             for (int i = 0; i < MAX_SIZE; i++)
@@ -73,17 +73,17 @@ public class Neuron implements Perceptron {
         return totalValue;
     }
 
-    public float getOutput() {
+    public double getOutput() {
         return useActivationFn(getOutputRaw() + bias);
 //        return getOutputRaw() + bias;
     }
 
 
-    public float finalizeOutput() {
+    public double finalizeOutput() {
         return 0f;
     }
 
-    public boolean addInput(float input) {
+    public boolean addInput(double input) {
         if (rawInputs == null) {
             System.out.println("Error: this neuron accepts neurons as an input only.");
             return false;
@@ -115,8 +115,8 @@ public class Neuron implements Perceptron {
         return false;
     }
 
-    public float changeInput(int pos,float input){
-        float oldValue = rawInputs.get(pos);
+    public double changeInput(int pos,double input){
+        double oldValue = rawInputs.get(pos);
         rawInputs.set(pos, input);
         return oldValue;
     }
@@ -133,13 +133,13 @@ public class Neuron implements Perceptron {
         StringBuilder sb = new StringBuilder();
 
         if (rawInputs != null) {
-            for (float input : rawInputs) {
+            for (double input : rawInputs) {
                 sb.append(input);
                 sb.append(" ");
             }
         }
         sb.append("\n");
-        for (float weight : weights) {
+        for (double weight : weights) {
             sb.append(weight);
             sb.append(" ");
         }
@@ -164,40 +164,40 @@ public class Neuron implements Perceptron {
     }
 
     @Override
-    public float getError(float result, float expected) {
+    public double getError(double result, double expected) {
         return expected - result / expected;
     }
 
-    public float useActivationFn(float input) {
-        return Math.max(0, input);
+    public double useActivationFn(double input) {
+        return Math.max(0.001 * input, input);
     }
 
-    public int useDerivFn(float input){
-        return input > 0f ? 1 : 0;
+    public double useDerivFn(double input){
+        return input > 0 ? 1 : 0.001;
     }
 
-    public void updateWeight(int pos,float newValue) {
+    public void updateWeight(int pos,double newValue) {
         weights.set(pos,newValue);
     }
 
     @Override
-    public void updateBias(float newValue) {
+    public void updateBias(double newValue) {
         
         
     }
 
     @Override
-    public LinkedList<Float> weights() {
+    public LinkedList<Double> weights() {
         return weights;
     }
 
     @Override
-    public float bias() {
+    public double bias() {
         return bias;
     }
 
     @Override
-    public float lr() {
+    public double lr() {
         return learningRate;
     }
 

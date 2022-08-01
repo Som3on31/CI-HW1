@@ -17,7 +17,7 @@ public class TestPlace {
         neuron_prototype.addInput(433);
         neuron_prototype.addInput(777);
 
-        float output_prototype = neuron_prototype.getOutput();
+        double output_prototype = neuron_prototype.getOutput();
         System.out.println(output_prototype);
         System.out.println(neuron_prototype.useActivationFn(output_prototype));
         System.out.println("Full? : " + neuron_prototype.isFull());
@@ -61,8 +61,8 @@ public class TestPlace {
         nn_proto.addInput(999);
         nn_proto.addInput(55555555);
 
-        float[] outputArray = nn_proto.getOutput();
-        for (float result:outputArray){
+        double[] outputArray = nn_proto.getOutput();
+        for (double result:outputArray){
             System.out.println(result + " ");
         }
         
