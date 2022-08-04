@@ -8,7 +8,7 @@ public class TestPlace {
 
     public static void main(String[] args) {
         System.out.println(helloMSG);
-        Neuron neuron_prototype = new Neuron(4, true, 0,0);
+        Neuron neuron_prototype = new Neuron(4, true, 0,0,0);
         neuron_prototype.addInput(1);
         neuron_prototype.addInput(2);
         neuron_prototype.addInput(9);
@@ -29,12 +29,12 @@ public class TestPlace {
         int inputCount = 5;
         
         for (int i = 0; i < inputCount; i++) {
-            Perceptron p = new Neuron(1, true, 0,0);
+            Perceptron p = new Neuron(1, true, 0,0,0);
             p.addInput(rng.nextInt(10));
             inputs.add(p);
         }
 
-        Perceptron output = new Neuron(5, false, 0,0);
+        Perceptron output = new Neuron(5, false, 0,0,0);
 
         for(int i=0;i<inputs.size();i++){
             output.addInput(inputs.get(i));
@@ -49,7 +49,7 @@ public class TestPlace {
         int hiddenLayerCount = 1;
         int hiddenPerLayer = 6;
         int outputNum = 2;
-        NeuralNetwork nn_proto = new NeuralNetwork(inputNum,hiddenLayerCount, hiddenPerLayer, outputNum,0);
+        NeuralNetwork nn_proto = new NeuralNetwork(inputNum,hiddenLayerCount, hiddenPerLayer, outputNum,0,0);
 
         // n0.addInput(1);
         // n1.addInput(5);

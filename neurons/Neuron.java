@@ -21,8 +21,9 @@ public class Neuron implements Perceptron {
     private static Random rng = new Random();
     private LinkedList<Double> weights;
     private double learningRate;
+    private double momentumRate;
 
-    public Neuron(int inputCount, boolean rawInputAllowed, int bias, double learningRate) {
+    public Neuron(int inputCount, boolean rawInputAllowed, int bias, double learningRate, double momentumRate) {
         if (rawInputAllowed)
             rawInputs = new LinkedList<>();
         else
@@ -34,6 +35,7 @@ public class Neuron implements Perceptron {
         weights = new LinkedList<>();
 
         this.learningRate = learningRate;
+        this.momentumRate = momentumRate;
 
         for (int i = 0; i < inputCount; i++) {
             int minus = rng.nextInt(100) > 49 ? 1 : -1;
@@ -42,7 +44,7 @@ public class Neuron implements Perceptron {
 
     }
 
-    public Neuron(int inputCount, boolean rawInputAllowed, double weight, int bias, double learningRate) {
+    public Neuron(int inputCount, boolean rawInputAllowed, double weight, int bias, double learningRate, double momentumRate) {
         if (rawInputAllowed)
             rawInputs = new LinkedList<>();
         else
@@ -54,6 +56,7 @@ public class Neuron implements Perceptron {
         weights = new LinkedList<>();
 
         this.learningRate = learningRate;
+        this.momentumRate = momentumRate;
 
         for (int i = 0; i < inputCount; i++) {
             weights.add(weight);
@@ -201,5 +204,8 @@ public class Neuron implements Perceptron {
     public double lr() {
         return learningRate;
     }
+
+    @Override
+    public double mr() { return momentumRate; }
 
 }

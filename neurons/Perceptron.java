@@ -19,7 +19,7 @@ public interface Perceptron{
     /**
      * Returns error
      * @param expected a value one wishes to see
-     * @param double a value gathered from using a perceptron
+     * @param result a value gathered from using a perceptron
      * @return a number of double number in (WIP)
      */
     double getError(double result,double expected);
@@ -38,4 +38,6 @@ public interface Perceptron{
     LinkedList<Double> weights();
     double bias();
     double lr();
+
+    double mr();
 }

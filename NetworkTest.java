@@ -8,11 +8,14 @@ public class NetworkTest {
         int hiddenPerLayer = 6;
         int hiddenLayerCount = 1;
         int outputNumber = 1;
-        double lr = 0.1;
-        NeuralNetwork nn_test = new NeuralNetwork(inputNum, hiddenLayerCount, hiddenPerLayer, outputNumber,lr);
+        double lr = 0.01;
+        double mr = 0.1;
+
+        NeuralNetwork nn_test = new NeuralNetwork(inputNum, hiddenLayerCount, hiddenPerLayer, outputNumber,lr,mr);
         for (int i=0;i<inputNum;i++)nn_test.addInput(0);
 
         double scale = 0.001;
+
 
         try{
             File f = new File("./sample data.txt");
