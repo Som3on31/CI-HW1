@@ -173,7 +173,7 @@ public class Neuron implements Perceptron {
     }
 
     public double useActivationFn(double input) {
-        return Math.max(0.001 * input, input);
+        return Math.max(0.01 * input, input);
     }
 
     public double useDerivFn(double input) {
@@ -186,8 +186,7 @@ public class Neuron implements Perceptron {
 
     @Override
     public void updateBias(double newValue) {
-
-
+        bias =  newValue;
     }
 
     @Override
