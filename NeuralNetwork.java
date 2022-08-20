@@ -172,7 +172,7 @@ public class NeuralNetwork {
      * @param trainingSet A 2D array for use in training
      * @param expected    An array for use in training
      */
-    public void train(int maxEpoch, double[][] trainingSet, double[] expected) {
+    public void train(int maxEpoch, double[][] trainingSet, double[][] expected) {
         if (trainingSet.length != expected.length) {
             System.out.println("Error: Expected output array should have the same size as output count");
             return;
@@ -205,7 +205,7 @@ public class NeuralNetwork {
             double[] error = new double[outputSize];
 
             for (int i = 0; i < outputSize; i++) {
-                error[i] = expected[currentEpoch % expected.length] - predicted[i];
+                error[i] = expected[currentEpoch % expected.length][i] - predicted[i];
             }
 
             // report error of each output

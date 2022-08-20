@@ -26,7 +26,7 @@ public class NetworkTest {
 
             int intCount = 0;
             double[][] dataInputs = new double[314][8];
-            double[] expected = new double[314];
+            double[][] expected = new double[314][1];
 
             while (s.hasNext()) {
                 int row = intCount / 9;
@@ -34,7 +34,7 @@ public class NetworkTest {
                 if (col < 8) {
                     dataInputs[row][col] = s.nextInt();
                 } else {
-                    expected[row] = s.nextInt();
+                    expected[row][0] = s.nextInt();
                 }
                 intCount++;
             }
@@ -54,6 +54,7 @@ public class NetworkTest {
             System.arraycopy(dataInputs, trainSampleCount, testInputs, 0, dataInputs.length - trainSampleCount);
             System.arraycopy(expected, trainSampleCount, testExpected, 0, dataInputs.length - trainSampleCount);
 
+            
 
             int[][] nnStructures_1 = new int[7][5];
             int[][] nnStructures_2 = new int[7][5];
@@ -80,7 +81,7 @@ public class NetworkTest {
         int trainSize = (int) (dataInputs.length * 0.9);
 
         double[][] trainInputs = new double[trainSize][dataInputs[0].length];
-        double[] trainExpected = new double[trainSize];
+        double[][] trainExpected = new double[trainSize][1];
 
         //construct and train networks here
         NeuralNetwork[] nns = new NeuralNetwork[k];
@@ -117,25 +118,29 @@ public class NetworkTest {
     private static double[] runTest2(NeuralNetwork nn, double[][] dataInputs, double[] expected) {
         double[] result = new double[expected.length];
 
-        
+
         for (int i = 0; i < expected.length; i++) {
 
         }
         return result;
     }
 
-    private static void generalize(double[][] inputs, double[] expected, double scale) {
+    private static void generalize(double[][] inputs, double[][] expected, double scale) {
         if (inputs.length != expected.length) {
             System.out.println("Error: both arrays must be the same size.");
             return;
         }
 
         for (int i = 0; i < inputs.length; i++) {
-            double lowestVal = expected[i];
+            double lowestVal = expected[i][0];
+            for (int j=1;j<expected[0].length;j++) if (lowestVal > expected[i][j]) lowestVal = expected[i][j];
             for (int j = 0; j < inputs[0].length; j++) if (lowestVal > inputs[i][j]) lowestVal = inputs[i][j];
 
-            expected[i] -= lowestVal;
-            expected[i] *= scale;
+            for(int j=0;j<expected[0].length;j++){
+                expected[i][j] -= lowestVal;
+                expected[i][j] *= scale;
+            }
+
             for (int j = 0; j < inputs[0].length; j++) {
                 inputs[i][j] -= lowestVal;
                 inputs[i][j] *= scale;
@@ -147,14 +152,14 @@ public class NetworkTest {
      * @param inputs array of inputs data to be shuffled
      * @param expected array of expected data to be shuffled
      */
-    private static void shuffleData(double[][] inputs, double[] expected) {
+    private static void shuffleData(double[][] inputs, double[][] expected) {
         Random rng = new Random();
         int range = inputs.length;
 
         for (int i = 0; i < inputs.length; i++) {
             int pos = rng.nextInt(range);
             double[] selectedInp = inputs[pos];
-            double selectedEx = expected[pos];
+            double[] selectedEx = expected[pos];
             inputs[pos] = inputs[i];
             expected[pos] = expected[i];
             inputs[i] = selectedInp;
