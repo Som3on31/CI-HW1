@@ -39,25 +39,32 @@ public class NetworkTest {
                 intCount++;
             }
 
-            //test #0
-            nn_test.train(700, dataInputs, expected);
-
             //do not use numbers like 0.1 or it goes boom
             shuffleData(dataInputs, expected);
             generalize(dataInputs, expected, 1 / 80.0);
 
-            double[][] trainInputs = new double[trainSampleCount][dataInputs[0].length];
-            double[][] testInputs = new double[dataInputs.length - trainSampleCount][dataInputs[0].length];
-            double[] testExpected = new double[dataInputs.length - trainSampleCount];
+            //test #0
+            nn_test.train(500, dataInputs, expected);
 
-            System.arraycopy(dataInputs, 0, trainInputs, 0, trainSampleCount);
-            System.arraycopy(dataInputs, trainSampleCount, testInputs, 0, dataInputs.length - trainSampleCount);
-            System.arraycopy(expected, trainSampleCount, testExpected, 0, dataInputs.length - trainSampleCount);
 
-            
 
-            int[][] nnStructures_1 = new int[7][5];
-            int[][] nnStructures_2 = new int[7][5];
+//            double[][] trainInputs = new double[trainSampleCount][dataInputs[0].length];
+//            double[][] testInputs = new double[dataInputs.length - trainSampleCount][dataInputs[0].length];
+//            double[] testExpected = new double[dataInputs.length - trainSampleCount];
+//
+//            System.arraycopy(dataInputs, 0, trainInputs, 0, trainSampleCount);
+//            System.arraycopy(dataInputs, trainSampleCount, testInputs, 0, dataInputs.length - trainSampleCount);
+//            System.arraycopy(expected, trainSampleCount, testExpected, 0, dataInputs.length - trainSampleCount);
+
+            //for print debugging only
+//            for(int i=0;i< dataInputs.length;i++){
+//                for (int j=0;j< dataInputs[i].length;j++) System.out.print(dataInputs[i][j] + " ");
+//                for (int j=0;j< expected[i].length;j++) System.out.print(expected[i][j] + " ");
+//                System.out.println();
+//            }
+
+//            int[][] nnStructures_1 = new int[7][5];
+//            int[][] nnStructures_2 = new int[7][5];
 
 
             s.close();
