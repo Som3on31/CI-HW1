@@ -7,6 +7,8 @@ package neurons;
  * </p>
  */
 
+import neurons.Perceptron;
+
 import java.util.Random;
 import java.util.LinkedList;
 

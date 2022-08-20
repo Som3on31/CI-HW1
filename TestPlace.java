@@ -1,3 +1,4 @@
+import neurons.Neuron;
 import neurons.*;
 import java.util.LinkedList;
 import java.util.Random;

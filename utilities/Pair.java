@@ -1,4 +1,4 @@
-package neurons;
+package utilities;
 
 public class Pair <F,S>{
     
