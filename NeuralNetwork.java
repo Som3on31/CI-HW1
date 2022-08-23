@@ -172,14 +172,15 @@ public class NeuralNetwork {
      * @param trainingSet A 2D array for use in training
      * @param expected    An array for use in training
      */
-    public void train(int maxEpoch, double[][] trainingSet, double[][] expected) {
+    public double train(int maxEpoch, double[][] trainingSet, double[][] expected) {
         if (trainingSet.length != expected.length) {
             System.out.println("Error: Expected output array should have the same size as output count");
-            return;
+            return 0;
         }
 
         //saves weights from previous epoch
         LinkedList<LinkedList<Double>>[] previousWeights = new LinkedList[hiddenLayerSize + 1];
+        int correctlyPredicted = 0;
         for (int i = hiddenLayerSize; i >= 0; i--) {
             int maxRow = i == hiddenLayerSize ? outputSize : neuronPerHidden;
             previousWeights[i] = new LinkedList<>();
@@ -206,6 +207,7 @@ public class NeuralNetwork {
 
             for (int i = 0; i < outputSize; i++) {
                 error[i] = expected[currentEpoch % expected.length][i] - predicted[i];
+                if (predicted[i] - Math.abs(error[i]) / predicted[i] > 0.95) correctlyPredicted++;
             }
 
             // report error of each output
@@ -213,10 +215,11 @@ public class NeuralNetwork {
             for (int i = 0; i < error.length; i++) {
                 System.out.print("error " + i + " :" + error[i] + " ");
                 if (i == error.length - 1) {
-                    double mse = 0;
+                    double sse = 0;
                     for (double v : error) {
-                        mse += Math.pow(v, 2);
+                        sse += Math.pow(v, 2);
                     }
+                    double mse = sse/(double) outputSize;
                     System.out.println("mse: " + mse);
                 }
 
@@ -317,6 +320,8 @@ public class NeuralNetwork {
             int kek = 0;            //just a placeholder for breakpoint debugging
         }
 
+
+        return correctlyPredicted / expected.length * 100;
     }
 
 }

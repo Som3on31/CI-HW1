@@ -1,3 +1,5 @@
+import utilities.Pair;
+
 import java.io.File;
 import java.util.Random;
 import java.util.Scanner;
@@ -16,11 +18,13 @@ public class NetworkTest {
         for (int i = 0; i < inputNum; i++) nn_test.addInput(0);
 
         //all vars to control generalization and samples to be used for accuracy testing
-        double scale = 0.001;
-        int trainSampleCount = (int) (314 * 0.9);
+//        double scale = 0.001;
+        double scale = 1 / 80.0;
+//        int trainSampleCount = (int) (314 * 0.9);
 
 
         try {
+            //load all test data into arrays initialized below
             File f = new File("./sample data.txt");
             Scanner s = new Scanner(f);
 
@@ -39,32 +43,53 @@ public class NetworkTest {
                 intCount++;
             }
 
-            //do not use numbers like 0.1 or it goes boom
+            //do not use numbers like 0.1 ,or it goes boom
             shuffleData(dataInputs, expected);
-            generalize(dataInputs, expected, 1 / 80.0);
+            generalize(dataInputs, expected, scale);
 
             //test #0
             nn_test.train(500, dataInputs, expected);
 
 
+            double[][] nn_data1 = new double[7][5];                     //pattern {inputs,hiddenNeurons,outputs,learning,momentum}
+//            double[][] nn_data2 = new double[7][5];                     //same as above
+            f = new File("./test1.txt");
+            s = new Scanner(f);
 
-//            double[][] trainInputs = new double[trainSampleCount][dataInputs[0].length];
-//            double[][] testInputs = new double[dataInputs.length - trainSampleCount][dataInputs[0].length];
-//            double[] testExpected = new double[dataInputs.length - trainSampleCount];
-//
-//            System.arraycopy(dataInputs, 0, trainInputs, 0, trainSampleCount);
-//            System.arraycopy(dataInputs, trainSampleCount, testInputs, 0, dataInputs.length - trainSampleCount);
-//            System.arraycopy(expected, trainSampleCount, testExpected, 0, dataInputs.length - trainSampleCount);
+            int doubleCount = 0;
+            while (s.hasNext()) {
+                int col = doubleCount % 5;
+                int row = doubleCount / 5;
+                nn_data1[row][col] = s.nextDouble();
 
-            //for print debugging only
-//            for(int i=0;i< dataInputs.length;i++){
-//                for (int j=0;j< dataInputs[i].length;j++) System.out.print(dataInputs[i][j] + " ");
-//                for (int j=0;j< expected[i].length;j++) System.out.print(expected[i][j] + " ");
-//                System.out.println();
-//            }
+                doubleCount++;
+            }
 
-//            int[][] nnStructures_1 = new int[7][5];
-//            int[][] nnStructures_2 = new int[7][5];
+            //test #1
+            Pair<NeuralNetwork, double[]>[] nn_1 = new Pair[nn_data1.length];
+            for (int i = 0; i < nn_1.length; i++) {
+                nn_1[i] = runTest1(nn_data1[i], dataInputs, expected, 10, 400, scale);
+
+                System.out.println("Network " + i + ": " + nn_data1[0] + "-" + nn_data1[1] + "-" + nn_data1[2]
+                        + " with learning rate of " + nn_data1[3] + " and momentum rate of " + nn_data1[4]);
+                System.out.println("Final accuracy: " + nn_1[i].second()[1] + "%");
+                System.out.println("Train accuracy before validation: " + nn_1[i].second()[0] + "%");
+            }
+
+            //test 2
+            double[][] nn_data2 = new double[7][5];
+            f = new File("./test2.txt");
+            s = new Scanner(f);
+
+            Pair<NeuralNetwork, double[]>[] nn_2 = new Pair[nn_data2.length];
+            for (int i = 0; i < nn_2.length; i++) {
+                nn_2[i] = runTest2(nn_data2[i], dataInputs, expected, 10, 400, 1);
+
+                System.out.println("Network " + i + ": " + nn_data2[0] + "-" + nn_data2[1] + "-" + nn_data2[2]
+                        + " with learning rate of " + nn_data2[3] + " and momentum rate of " + nn_data2[4]);
+                System.out.println("Final accuracy: " + nn_2[i].second()[1] + "%");
+                System.out.println("Train accuracy before validation: " + nn_1[i].second()[0] + "%");
+            }
 
 
             s.close();
@@ -74,7 +99,7 @@ public class NetworkTest {
 
     }
 
-    private static NeuralNetwork runTest1(double[] nnStructures, double[][] dataInputs, double[] expected, int k, int epoch) {
+    private static Pair<NeuralNetwork, double[]> runTest1(double[] nnStructures, double[][] dataInputs, double[][] expected, int k, int epoch, double scale) {
         int di_length = dataInputs.length;
         int expected_length = expected.length;
         if (di_length != expected_length) {
@@ -82,38 +107,50 @@ public class NetworkTest {
             return null;
         }
 
-        double[] acc = new double[expected.length];
-        double[] sse = new double[expected.length];
-
-        int trainSize = (int) (dataInputs.length * 0.9);
+        int vadSize = dataInputs.length / k;
+        int trainSize = dataInputs.length - vadSize;
 
         double[][] trainInputs = new double[trainSize][dataInputs[0].length];
-        double[][] trainExpected = new double[trainSize][1];
+        double[][] trainExpected = new double[trainSize][expected[0].length];
+        double[][] vadInputs = new double[vadSize][dataInputs[0].length];
+        double[][] vadExpected = new double[vadSize][expected[0].length];
 
         //construct and train networks here
         NeuralNetwork[] nns = new NeuralNetwork[k];
-        for (int i = 0; i < nns.length; i++) {
+        int startValidation = 0;
+        int posShift = (dataInputs.length / k);
+        int endValidation = posShift;
+        Pair<NeuralNetwork, double[]> result = null;
+        for (int i = 0; i < k; i++) {
             nns[i] = new NeuralNetwork(
                     (int) nnStructures[0], (int) nnStructures[1], (int) nnStructures[2],
                     (int) nnStructures[3], nnStructures[4], nnStructures[5]);
-            int startValidation = 0;
-            int endValidation = (int) (dataInputs.length * 0.1);
 
             //load all data into these training arrays then train it
-            System.arraycopy(dataInputs,0,trainInputs,0,startValidation);
-            System.arraycopy(expected,0,trainExpected,0,startValidation);
-            System.arraycopy(dataInputs,endValidation,trainInputs,0,trainSize-endValidation);
-            System.arraycopy(expected,endValidation,trainExpected,0,trainSize-endValidation);
+            System.arraycopy(dataInputs, 0, trainInputs, 0, startValidation);                               //0 to start
+            System.arraycopy(expected, 0, trainExpected, 0, startValidation);
+            System.arraycopy(dataInputs, endValidation, trainInputs, startValidation, dataInputs[0].length - endValidation);//end to end of array
+            System.arraycopy(expected, endValidation, trainExpected, startValidation, dataInputs[0].length - endValidation);
+            System.arraycopy(dataInputs, startValidation, vadInputs, 0, vadSize);                                   //validation side
+            System.arraycopy(expected, startValidation, vadExpected, 0, vadSize);
 
-            nns[i].train(epoch,trainInputs,trainExpected);
+            double trainAcc = nns[i].train(epoch, trainInputs, trainExpected);
 
             //once it's trained, validate it to get a result
+            double vadAcc = validateAccuracy(nns[i], vadInputs, vadExpected, scale);
+            if (trainAcc < vadAcc && result.second()[1] < vadAcc) {         //need to fix null pointer
+                double[] accOfTrainAndVad = {trainAcc, vadAcc};
+                result = new Pair<>(nns[i], accOfTrainAndVad);
+            }
 
+            //update array pos to be validated
+            startValidation += posShift;
+            endValidation += posShift;
         }
 
 
         //return one that has the best validation result
-        return null;
+        return result;
     }
 
     //WIP
@@ -122,14 +159,59 @@ public class NetworkTest {
     //for example, let 1 0 be class 1 and 0 1 be class 0. get result from the network and then
     //check if what we expect to get 1 0 is exactly from the network. classify the data before checking
     //it is true
-    private static double[] runTest2(NeuralNetwork nn, double[][] dataInputs, double[] expected) {
-        double[] result = new double[expected.length];
-
-
-        for (int i = 0; i < expected.length; i++) {
-
+    private static Pair<NeuralNetwork, double[]> runTest2(double[] nnStructures, double[][] dataInputs, double[][] expected, int k, int epoch, double scale) {
+        int di_length = dataInputs.length;
+        int expected_length = expected.length;
+        if (di_length != expected_length) {
+            System.out.println("Error: data input array must have the same size as expected array");
+            return null;
         }
-        return result;
+
+        int vadSize = dataInputs.length / k;
+        int trainSize = dataInputs.length - vadSize;
+
+        double[][] trainInputs = new double[trainSize][dataInputs[0].length];
+        double[][] trainExpected = new double[trainSize][expected[0].length];
+        double[][] vadInputs = new double[vadSize][dataInputs[0].length];
+        double[][] vadExpected = new double[vadSize][expected[0].length];
+
+        double[][] confusionMatrix = new double[2][2];
+
+        //construct and train networks here
+        NeuralNetwork[] nns = new NeuralNetwork[k];
+        int startValidation = 0;
+        int posShift = (dataInputs.length / k);
+        int endValidation = posShift;
+
+        for (int i = 0; i < k; i++) {
+            nns[i] = new NeuralNetwork(
+                    (int) nnStructures[0], (int) nnStructures[1], (int) nnStructures[2],
+                    (int) nnStructures[3], nnStructures[4], nnStructures[5]);
+
+            //load all data into these training arrays then train it
+            System.arraycopy(dataInputs, 0, trainInputs, 0, startValidation);                               //0 to start
+            System.arraycopy(expected, 0, trainExpected, 0, startValidation);
+            System.arraycopy(dataInputs, endValidation, trainInputs, startValidation, dataInputs[0].length - endValidation);//end to end of array
+            System.arraycopy(expected, endValidation, trainExpected, startValidation, dataInputs[0].length - endValidation);
+            System.arraycopy(dataInputs, startValidation, vadInputs, 0, vadSize);                                   //validation side
+            System.arraycopy(expected, startValidation, vadExpected, 0, vadSize);
+
+
+            //update array pos to be validated
+            startValidation += posShift;
+            endValidation += posShift;
+
+            nns[i].train(epoch, trainInputs, trainExpected);
+            for (int i1 = 0; i1 < vadInputs.length; i1++) {
+                for (int j = 0; j < vadSize; j++) nns[i].changeInput(j, vadInputs[i1][j]);
+                for (int j = 0; j < vadSize; j++) {
+
+                }
+            }
+        }
+
+
+        return null;
     }
 
     private static void generalize(double[][] inputs, double[][] expected, double scale) {
@@ -140,10 +222,10 @@ public class NetworkTest {
 
         for (int i = 0; i < inputs.length; i++) {
             double lowestVal = expected[i][0];
-            for (int j=1;j<expected[0].length;j++) if (lowestVal > expected[i][j]) lowestVal = expected[i][j];
+            for (int j = 1; j < expected[0].length; j++) if (lowestVal > expected[i][j]) lowestVal = expected[i][j];
             for (int j = 0; j < inputs[0].length; j++) if (lowestVal > inputs[i][j]) lowestVal = inputs[i][j];
 
-            for(int j=0;j<expected[0].length;j++){
+            for (int j = 0; j < expected[0].length; j++) {
                 expected[i][j] -= lowestVal;
                 expected[i][j] *= scale;
             }
@@ -156,7 +238,9 @@ public class NetworkTest {
     }
 
     /**
-     * @param inputs array of inputs data to be shuffled
+     * Shuffle all data for testing.
+     *
+     * @param inputs   array of inputs data to be shuffled
      * @param expected array of expected data to be shuffled
      */
     private static void shuffleData(double[][] inputs, double[][] expected) {
@@ -175,17 +259,22 @@ public class NetworkTest {
     }
 
     /**
-     * @param nn neural netwrok to be tested
-     * @param testInputs inputs to be used for testing
+     * @param nn           neural network to be tested
+     * @param testInputs   inputs to be used for testing
      * @param testExpected expected outputs to be used for testing
      * @return accuracy value in percent
      */
-    private static double testAccuracy(NeuralNetwork nn, double[][] testInputs, double[] testExpected) {
+    private static double validateAccuracy(NeuralNetwork nn, double[][] testInputs, double[][] testExpected, double scale) {
         int correctPrediction = 0;
 
         for (int i = 0; i < testInputs.length; i++) {
             for (int j = 0; j < testInputs[i].length; j++) nn.changeInput(j, testInputs[i][j]);
-            if (nn.getOutput()[0] == testExpected[i]) correctPrediction++;
+            for (int j = 0; j < testExpected[i].length; j++) {
+                int predicted = (int) (nn.getOutput()[j] * scale);
+                int expected = (int) (testExpected[i][j] * scale);
+
+                if (predicted == expected) correctPrediction++;
+            }
         }
 
         return correctPrediction / (double) testInputs.length * 100;
