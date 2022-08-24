@@ -98,7 +98,7 @@ public class Neuron implements Perceptron {
             rawInputs.add(input);
             inputCount++;
 
-            System.out.println("Successfully added " + input);
+//            System.out.println("Successfully added " + input);
             return true;
         }
         System.out.println("Error: The input array is full.");
@@ -114,7 +114,7 @@ public class Neuron implements Perceptron {
             inputNeurons.add(input);
             inputCount++;
 
-            System.out.println("Successfully added " + input);
+//            System.out.println("Successfully added " + input);
             return true;
         }
         System.out.println("Error: The input array is full.");

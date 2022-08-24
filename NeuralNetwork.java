@@ -172,7 +172,7 @@ public class NeuralNetwork {
      * @param trainingSet A 2D array for use in training
      * @param expected    An array for use in training
      */
-    public double train(int maxEpoch, double[][] trainingSet, double[][] expected) {
+    public double train(int maxEpoch, double[][] trainingSet, double[][] expected,double scale) {
         if (trainingSet.length != expected.length) {
             System.out.println("Error: Expected output array should have the same size as output count");
             return 0;
@@ -207,7 +207,7 @@ public class NeuralNetwork {
 
             for (int i = 0; i < outputSize; i++) {
                 error[i] = expected[currentEpoch % expected.length][i] - predicted[i];
-                if (predicted[i] - Math.abs(error[i]) / predicted[i] > 0.95) correctlyPredicted++;
+                if ((expected[currentEpoch % expected.length][i]/scale) - Math.round(Math.abs(error[i])/scale) == 0) correctlyPredicted++;
             }
 
             // report error of each output
@@ -221,6 +221,18 @@ public class NeuralNetwork {
                     }
                     double mse = sse/(double) outputSize;
                     System.out.println("mse: " + mse);
+
+                    System.out.print("Predicted: ");
+                    for (double sample:predicted) System.out.print(sample + " ");
+                    System.out.print("\nExpected: ");
+                    for (double sample:expected[currentEpoch%expected.length]) System.out.print(sample + " ");
+                    System.out.print("\nDifference in %: ");
+                    for (int j=0;j<expected[currentEpoch % expected.length].length;j++){
+                        System.out.print((expected[currentEpoch % expected.length][j] - Math.abs(error[j])) / expected[currentEpoch % expected.length][j] * 100 + " ");
+                    }
+                    System.out.println();
+
+
                 }
 
             }
@@ -320,8 +332,10 @@ public class NeuralNetwork {
             int kek = 0;            //just a placeholder for breakpoint debugging
         }
 
+        double acc = correctlyPredicted / (double) maxEpoch * 100;
+        System.out.println("Train accuracy: " + acc);
 
-        return correctlyPredicted / expected.length * 100;
+        return acc;
     }
 
 }
