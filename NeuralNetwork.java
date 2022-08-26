@@ -5,7 +5,7 @@ import neurons.*;
 public class NeuralNetwork {
 
     // Linked List to store neurons
-    private LinkedList<Perceptron> inputs;
+    private final LinkedList<Perceptron> inputs;
     private LinkedList<Perceptron>[] hiddenLayers;
     private LinkedList<Perceptron> outputs;
 
@@ -38,7 +38,7 @@ public class NeuralNetwork {
         }
 
         for (int i = 0; i < inputNumber; i++) {
-            inputs.add(new Neuron(1, true, 0, 0, 0));
+            inputs.add(new Neuron(1, true, 1,0, 0, 0));
         }
 
         for (int i = 0; i < hiddenLayerCount; i++) {
@@ -77,7 +77,7 @@ public class NeuralNetwork {
         }
 
         for (int i = 0; i < inputNumber; i++) {
-            inputs.add(new Neuron(1, true, weight, 0, 0, 0));
+            inputs.add(new Neuron(1, true, 1, 0, 0, 0));
         }
 
         for (int i = 0; i < hiddenLayerCount; i++) {
@@ -172,7 +172,7 @@ public class NeuralNetwork {
      * @param trainingSet A 2D array for use in training
      * @param expected    An array for use in training
      */
-    public double train(int maxEpoch, double[][] trainingSet, double[][] expected,double scale) {
+    public double train(int maxEpoch, double[][] trainingSet, double[][] expected, double scale) {
         if (trainingSet.length != expected.length) {
             System.out.println("Error: Expected output array should have the same size as output count");
             return 0;
@@ -207,30 +207,36 @@ public class NeuralNetwork {
 
             for (int i = 0; i < outputSize; i++) {
                 error[i] = expected[currentEpoch % expected.length][i] - predicted[i];
-                if ((expected[currentEpoch % expected.length][i]/scale) - Math.round(Math.abs(error[i])/scale) == 0) correctlyPredicted++;
+                boolean valueAccepted = Math.abs(expected[currentEpoch % expected.length][i] / scale) - (Math.round(Math.abs(predicted[i]/ scale))) == 0;
+//                System.out.println("Value accepted? " + valueAccepted);
+                if (valueAccepted){
+                    correctlyPredicted++;
+
+                }
+
             }
 
             // report error of each output
-            System.out.print("epoch:" + currentEpoch + " ");
+//            System.out.print("epoch:" + currentEpoch + " ");
             for (int i = 0; i < error.length; i++) {
-                System.out.print("error " + i + " :" + error[i] + " ");
+//                System.out.print("error " + i + " :" + error[i] + " ");
                 if (i == error.length - 1) {
                     double sse = 0;
                     for (double v : error) {
                         sse += Math.pow(v, 2);
                     }
-                    double mse = sse/(double) outputSize;
-                    System.out.println("mse: " + mse);
-
-                    System.out.print("Predicted: ");
-                    for (double sample:predicted) System.out.print(sample + " ");
-                    System.out.print("\nExpected: ");
-                    for (double sample:expected[currentEpoch%expected.length]) System.out.print(sample + " ");
-                    System.out.print("\nDifference in %: ");
-                    for (int j=0;j<expected[currentEpoch % expected.length].length;j++){
-                        System.out.print((expected[currentEpoch % expected.length][j] - Math.abs(error[j])) / expected[currentEpoch % expected.length][j] * 100 + " ");
-                    }
-                    System.out.println();
+                    double mse = sse / (double) outputSize;
+//                    System.out.println("mse: " + mse);
+//
+//                    System.out.print("Predicted: ");
+//                    for (double sample : predicted) System.out.print(Math.round(sample/scale) + " ");
+//                    System.out.print("\nExpected: ");
+//                    for (double sample : expected[currentEpoch % expected.length]) System.out.print(sample/scale + " ");
+//                    System.out.print("\nDifference: ");
+//                    for (int j = 0; j < expected[currentEpoch % expected.length].length; j++) {
+//                        System.out.print(Math.round(Math.abs(error[j])/ scale) + " ");
+//                    }
+//                    System.out.println();
 
 
                 }

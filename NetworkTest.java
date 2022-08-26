@@ -11,15 +11,12 @@ public class NetworkTest {
         int hiddenPerLayer = 6;
         int hiddenLayerCount = 1;
         int outputNumber = 1;
-        double lr = 0.3;
-        double mr = 0.1;
-
-        NeuralNetwork nn_test = new NeuralNetwork(inputNum, hiddenLayerCount, hiddenPerLayer, outputNumber, lr, mr);
-        for (int i = 0; i < inputNum; i++) nn_test.addInput(0);
+        double lr = 0.2;
+        double mr = 0.15;
 
         //all vars to control generalization and samples to be used for accuracy testing
 //        double scale = 0.001;
-        double scale = 1 / 1000.0;
+        double scale = 1 / 400.0;
 //        int trainSampleCount = (int) (314 * 0.9);
 
 
@@ -48,7 +45,10 @@ public class NetworkTest {
             generalize(dataInputs, expected, scale);
 
             //test #0
-            nn_test.train(1000, dataInputs, expected,scale);
+            NeuralNetwork nn_test = new NeuralNetwork(inputNum, hiddenLayerCount, hiddenPerLayer, outputNumber,1.5,lr, mr);
+            for (int i = 0; i < inputNum; i++) nn_test.addInput(0);
+
+            nn_test.train(800, dataInputs, expected,scale);
 
 
             double[][] nn_data1 = new double[7][5];                     //pattern {inputs,hiddenNeurons,outputs,learning,momentum}
@@ -66,15 +66,15 @@ public class NetworkTest {
             }
 
             //test #1
-//            Pair<NeuralNetwork, double[]>[] nn_1 = new Pair[nn_data1.length];
-//            for (int i = 0; i < nn_1.length; i++) {
-//                nn_1[i] = runTest1(nn_data1[i], dataInputs, expected, 10, 400, scale);
-//
-//                System.out.println("Network " + i + ": " + nn_data1[0] + "-" + nn_data1[1] + "-" + nn_data1[2]
-//                        + " with learning rate of " + nn_data1[3] + " and momentum rate of " + nn_data1[4]);
-//                System.out.println("Final accuracy: " + nn_1[i].second()[1] + "%");
-//                System.out.println("Train accuracy before validation: " + nn_1[i].second()[0] + "%");
-//            }
+            Pair<NeuralNetwork, double[]>[] nn_1 = new Pair[nn_data1.length];
+            for (int i = 0; i < nn_1.length; i++) {
+                nn_1[i] = runTest1(nn_data1[i], dataInputs, expected, 10, 400, scale);
+
+                System.out.println("Network " + i + ": " + nn_data1[i][0] + "-" + nn_data1[i][1] + "-" + nn_data1[i][2]
+                        + " with learning rate of " + nn_data1[i][3] + " and momentum rate of " + nn_data1[i][4]);
+                System.out.println("Final accuracy: " + nn_1[i].second()[1] + "%");
+                System.out.println("Train accuracy before validation: " + nn_1[i].second()[0] + "%");
+            }
 //
 //            //test 2
 //            double[][] nn_data2 = new double[7][5];
@@ -123,14 +123,15 @@ public class NetworkTest {
         Pair<NeuralNetwork, double[]> result = null;
         for (int i = 0; i < k; i++) {
             nns[i] = new NeuralNetwork(
-                    (int) nnStructures[0], (int) nnStructures[1], (int) nnStructures[2],
-                    (int) nnStructures[3], nnStructures[4], nnStructures[5]);
+                    (int) nnStructures[0], 1,(int) nnStructures[1], (int) nnStructures[2],
+                    (int) nnStructures[3], nnStructures[4]);
+            for (int j = 0; j < dataInputs[0].length; j++) nns[i].addInput(0);
 
             //load all data into these training arrays then train it
             System.arraycopy(dataInputs, 0, trainInputs, 0, startValidation);                               //0 to start
             System.arraycopy(expected, 0, trainExpected, 0, startValidation);
-            System.arraycopy(dataInputs, endValidation, trainInputs, startValidation, dataInputs[0].length - endValidation);//end to end of array
-            System.arraycopy(expected, endValidation, trainExpected, startValidation, dataInputs[0].length - endValidation);
+            System.arraycopy(dataInputs, endValidation, trainInputs, startValidation, dataInputs.length - endValidation);//end to end of array
+            System.arraycopy(expected, endValidation, trainExpected, startValidation, dataInputs.length - endValidation);
             System.arraycopy(dataInputs, startValidation, vadInputs, 0, vadSize);                                   //validation side
             System.arraycopy(expected, startValidation, vadExpected, 0, vadSize);
 
@@ -138,7 +139,7 @@ public class NetworkTest {
 
             //once it's trained, validate it to get a result
             double vadAcc = validateAccuracy(nns[i], vadInputs, vadExpected, scale);
-            if (trainAcc < vadAcc && result.second()[1] < vadAcc) {         //need to fix null pointer
+            if (result == null || trainAcc < vadAcc && result.second()[1] < vadAcc) {         //need to fix null pointer
                 double[] accOfTrainAndVad = {trainAcc, vadAcc};
                 result = new Pair<>(nns[i], accOfTrainAndVad);
             }
@@ -273,7 +274,8 @@ public class NetworkTest {
                 int predicted = (int) (nn.getOutput()[j] * scale);
                 int expected = (int) (testExpected[i][j] * scale);
 
-                if (predicted == expected) correctPrediction++;
+                boolean valueAccepted = expected - predicted == 0;
+                if (valueAccepted) correctPrediction++;
             }
         }
 
