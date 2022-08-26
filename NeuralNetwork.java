@@ -1,4 +1,7 @@
 import java.util.LinkedList;
+import java.util.Scanner;
+import java.io.File;
+import java.io.FileWriter;
 
 import neurons.*;
 
@@ -38,7 +41,7 @@ public class NeuralNetwork {
         }
 
         for (int i = 0; i < inputNumber; i++) {
-            inputs.add(new Neuron(1, true, 1,0, 0, 0));
+            inputs.add(new Neuron(1, true, 1, 0, 0, 0));
         }
 
         for (int i = 0; i < hiddenLayerCount; i++) {
@@ -51,7 +54,7 @@ public class NeuralNetwork {
 
         connect();
 
-        System.out.println("Construction complete");
+//        System.out.println("Construction complete");
     }
 
     @SuppressWarnings("unchecked")
@@ -90,7 +93,7 @@ public class NeuralNetwork {
 
         connect();
 
-        System.out.println("Construction complete");
+//        System.out.println("Construction complete");
     }
 
     public boolean addInput(double newInput) {
@@ -172,7 +175,7 @@ public class NeuralNetwork {
      * @param trainingSet A 2D array for use in training
      * @param expected    An array for use in training
      */
-    public double train(int maxEpoch, double[][] trainingSet, double[][] expected, double scale) {
+    public double train(int maxEpoch, double[][] trainingSet, double[][] expected,double[] deductedValues, double scale) {
         if (trainingSet.length != expected.length) {
             System.out.println("Error: Expected output array should have the same size as output count");
             return 0;
@@ -207,41 +210,50 @@ public class NeuralNetwork {
 
             for (int i = 0; i < outputSize; i++) {
                 error[i] = expected[currentEpoch % expected.length][i] - predicted[i];
-                boolean valueAccepted = Math.abs(expected[currentEpoch % expected.length][i] / scale) - (Math.round(Math.abs(predicted[i]/ scale))) == 0;
+//                boolean valueAccepted = Math.abs(Math.round(expected[currentEpoch % expected.length][i] / scale) - Math.round(predicted[i] / scale)) <= 5;
+                boolean valueAccepted = Math.round(expected[currentEpoch % expected.length][i] / scale) - Math.round(Math.abs(predicted[i]/ scale)) <= 5;
 //                System.out.println("Value accepted? " + valueAccepted);
-                if (valueAccepted){
-                    correctlyPredicted++;
-
-                }
+                if (valueAccepted) correctlyPredicted++;
 
             }
 
             // report error of each output
-//            System.out.print("epoch:" + currentEpoch + " ");
+            System.out.print("epoch:" + currentEpoch + " ");
             for (int i = 0; i < error.length; i++) {
-//                System.out.print("error " + i + " :" + error[i] + " ");
+                System.out.print("error " + i + " :" + error[i] + " ");
                 if (i == error.length - 1) {
                     double sse = 0;
                     for (double v : error) {
                         sse += Math.pow(v, 2);
                     }
                     double mse = sse / (double) outputSize;
-//                    System.out.println("mse: " + mse);
-//
+
+                    System.out.println("mse: " + mse);
 //                    System.out.print("Predicted: ");
-//                    for (double sample : predicted) System.out.print(Math.round(sample/scale) + " ");
+//                    for (double sample : predicted) {
+//                        System.out.print(sample + " ");
+//                    }
+//                    System.out.print("\nPredicted (Scaled and rounded): ");
+//                    for (int j=0;j<predicted.length;j++) {
+//                        System.out.print(Math.round(predicted[j] / scale) + Math.round(deductedValues[0]) + " ");
+//                    }
 //                    System.out.print("\nExpected: ");
-//                    for (double sample : expected[currentEpoch % expected.length]) System.out.print(sample/scale + " ");
+//                    for (double sample : expected[currentEpoch % expected.length]) {
+//                        System.out.print(sample + " ");
+//                    }
+//                    System.out.print("\nExpected: (Scaled and Rounded): ");
+//                    for (int j=0;j<expected[i].length;j++) {
+//                        System.out.print(Math.round(expected[i][j] / scale) + Math.round(deductedValues[0]) + " ");
+//                    }
 //                    System.out.print("\nDifference: ");
 //                    for (int j = 0; j < expected[currentEpoch % expected.length].length; j++) {
 //                        System.out.print(Math.round(Math.abs(error[j])/ scale) + " ");
 //                    }
 //                    System.out.println();
-
-
                 }
 
             }
+//            System.out.println("------------------------------------------------");
 
             // backpropagates here
             // get gradient of each neuron first (except input neurons lol)

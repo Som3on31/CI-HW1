@@ -12,7 +12,7 @@ public class NetworkTest {
         int hiddenLayerCount = 1;
         int outputNumber = 1;
         double lr = 0.2;
-        double mr = 0.15;
+        double mr = 0.1;
 
         //all vars to control generalization and samples to be used for accuracy testing
 //        double scale = 0.001;
@@ -42,13 +42,13 @@ public class NetworkTest {
 
             //do not use numbers like 0.1 ,or it goes boom
             shuffleData(dataInputs, expected);
-            generalize(dataInputs, expected, scale);
+            double[] deductedValues = generalize(dataInputs, expected, scale);
 
             //test #0
-            NeuralNetwork nn_test = new NeuralNetwork(inputNum, hiddenLayerCount, hiddenPerLayer, outputNumber,1.5,lr, mr);
+            NeuralNetwork nn_test = new NeuralNetwork(inputNum, hiddenLayerCount, hiddenPerLayer, outputNumber,lr, mr);
             for (int i = 0; i < inputNum; i++) nn_test.addInput(0);
 
-            nn_test.train(800, dataInputs, expected,scale);
+            nn_test.train(1000, dataInputs, expected,deductedValues,scale);
 
 
             double[][] nn_data1 = new double[7][5];                     //pattern {inputs,hiddenNeurons,outputs,learning,momentum}
@@ -66,9 +66,10 @@ public class NetworkTest {
             }
 
             //test #1
+            System.out.println("---------------------Test 1: Water level---------------------");
             Pair<NeuralNetwork, double[]>[] nn_1 = new Pair[nn_data1.length];
             for (int i = 0; i < nn_1.length; i++) {
-                nn_1[i] = runTest1(nn_data1[i], dataInputs, expected, 10, 400, scale);
+                nn_1[i] = runTest1(nn_data1[i], dataInputs, expected, deductedValues,10, 400, scale);
 
                 System.out.println("Network " + i + ": " + nn_data1[i][0] + "-" + nn_data1[i][1] + "-" + nn_data1[i][2]
                         + " with learning rate of " + nn_data1[i][3] + " and momentum rate of " + nn_data1[i][4]);
@@ -99,7 +100,7 @@ public class NetworkTest {
 
     }
 
-    private static Pair<NeuralNetwork, double[]> runTest1(double[] nnStructures, double[][] dataInputs, double[][] expected, int k, int epoch, double scale) {
+    private static Pair<NeuralNetwork, double[]> runTest1(double[] nnStructures, double[][] dataInputs, double[][] expected,double[] deductedValues, int k, int epoch, double scale) {
         int di_length = dataInputs.length;
         int expected_length = expected.length;
         if (di_length != expected_length) {
@@ -112,8 +113,10 @@ public class NetworkTest {
 
         double[][] trainInputs = new double[trainSize][dataInputs[0].length];
         double[][] trainExpected = new double[trainSize][expected[0].length];
+        double[] trainDeduced = new double[trainSize];
         double[][] vadInputs = new double[vadSize][dataInputs[0].length];
         double[][] vadExpected = new double[vadSize][expected[0].length];
+        double[] vadDeduced = new double[vadSize];
 
         //construct and train networks here
         NeuralNetwork[] nns = new NeuralNetwork[k];
@@ -135,7 +138,7 @@ public class NetworkTest {
             System.arraycopy(dataInputs, startValidation, vadInputs, 0, vadSize);                                   //validation side
             System.arraycopy(expected, startValidation, vadExpected, 0, vadSize);
 
-            double trainAcc = nns[i].train(epoch, trainInputs, trainExpected,scale);
+            double trainAcc = nns[i].train(epoch, trainInputs, trainExpected,deductedValues,scale);
 
             //once it's trained, validate it to get a result
             double vadAcc = validateAccuracy(nns[i], vadInputs, vadExpected, scale);
@@ -149,7 +152,6 @@ public class NetworkTest {
             endValidation += posShift;
         }
 
-
         //return one that has the best validation result
         return result;
     }
@@ -160,7 +162,7 @@ public class NetworkTest {
     //for example, let 1 0 be class 1 and 0 1 be class 0. get result from the network and then
     //check if what we expect to get 1 0 is exactly from the network. classify the data before checking
     //it is true
-    private static Pair<NeuralNetwork, double[]> runTest2(double[] nnStructures, double[][] dataInputs, double[][] expected, int k, int epoch, double scale) {
+    private static Pair<NeuralNetwork, double[]> runTest2(double[] nnStructures, double[][] dataInputs, double[][] expected,double[] deductedValues, int k, int epoch, double scale) {
         int di_length = dataInputs.length;
         int expected_length = expected.length;
         if (di_length != expected_length) {
@@ -197,12 +199,11 @@ public class NetworkTest {
             System.arraycopy(dataInputs, startValidation, vadInputs, 0, vadSize);                                   //validation side
             System.arraycopy(expected, startValidation, vadExpected, 0, vadSize);
 
-
             //update array pos to be validated
             startValidation += posShift;
             endValidation += posShift;
 
-            nns[i].train(epoch, trainInputs, trainExpected,scale);
+            double trainAcc = nns[i].train(epoch, trainInputs, trainExpected,deductedValues,scale);
             for (int i1 = 0; i1 < vadInputs.length; i1++) {
                 for (int j = 0; j < vadSize; j++) nns[i].changeInput(j, vadInputs[i1][j]);
                 for (int j = 0; j < vadSize; j++) {
@@ -215,27 +216,33 @@ public class NetworkTest {
         return null;
     }
 
-    private static void generalize(double[][] inputs, double[][] expected, double scale) {
+    private static double[] generalize(double[][] inputs, double[][] expected, double scale) {
         if (inputs.length != expected.length) {
             System.out.println("Error: both arrays must be the same size.");
-            return;
+            return null;
         }
+
+        double[] deductedValues = new double[inputs.length];
 
         for (int i = 0; i < inputs.length; i++) {
             double lowestVal = expected[i][0];
             for (int j = 1; j < expected[0].length; j++) if (lowestVal > expected[i][j]) lowestVal = expected[i][j];
             for (int j = 0; j < inputs[0].length; j++) if (lowestVal > inputs[i][j]) lowestVal = inputs[i][j];
 
+            deductedValues[i] = lowestVal;
+
             for (int j = 0; j < expected[0].length; j++) {
-//                expected[i][j] -= lowestVal;
+                expected[i][j] -= lowestVal;
                 expected[i][j] *= scale;
             }
 
             for (int j = 0; j < inputs[0].length; j++) {
-//                inputs[i][j] -= lowestVal;
+                inputs[i][j] -= lowestVal;
                 inputs[i][j] *= scale;
             }
         }
+
+        return deductedValues;
     }
 
     /**
