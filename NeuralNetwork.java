@@ -1,11 +1,13 @@
-import java.util.LinkedList;
-import java.util.Scanner;
+import neurons.Neuron;
+import neurons.Perceptron;
+
 import java.io.File;
 import java.io.FileWriter;
-
-import neurons.*;
+import java.util.LinkedList;
 
 public class NeuralNetwork {
+
+    private static int networkCount = 0;
 
     // Linked List to store neurons
     private final LinkedList<Perceptron> inputs;
@@ -18,6 +20,9 @@ public class NeuralNetwork {
     private int hiddenLayerSize;
     private int neuronPerHidden;
     private int outputSize;
+
+    private static final int[] case01 = {0, 1};
+    private static final int[] case10 = {1, 0};
 
     @SuppressWarnings("unchecked")
     public NeuralNetwork(int inputNumber, int hiddenLayerCount, int hiddenPerLayer, int outputNumber,
@@ -106,9 +111,8 @@ public class NeuralNetwork {
         return false;
     }
 
-    public boolean changeInput(int pos, double newInput) {
+    public void changeInput(int pos, double newInput) {
         inputs.get(pos).changeInput(0, newInput);
-        return false;
     }
 
     public double[] getOutput() {
@@ -175,60 +179,86 @@ public class NeuralNetwork {
      * @param trainingSet A 2D array for use in training
      * @param expected    An array for use in training
      */
-    public double train(int maxEpoch, double[][] trainingSet, double[][] expected,double[] deductedValues, double scale) {
+    @SuppressWarnings("unchecked")
+    public double train(int maxEpoch, double[][] trainingSet, double[][] expected, double scale,boolean confusionAllowed) {
         if (trainingSet.length != expected.length) {
             System.out.println("Error: Expected output array should have the same size as output count");
             return 0;
         }
 
-        //saves weights from previous epoch
-        LinkedList<LinkedList<Double>>[] previousWeights = new LinkedList[hiddenLayerSize + 1];
-        int correctlyPredicted = 0;
-        for (int i = hiddenLayerSize; i >= 0; i--) {
-            int maxRow = i == hiddenLayerSize ? outputSize : neuronPerHidden;
-            previousWeights[i] = new LinkedList<>();
+        int[][] confusion = new int[0][1];
+        if(confusionAllowed) confusion = new int[2][2];
 
-            for (int j = 0; j < maxRow; j++) {
-                //creates an empty list to add to the outer list
-                LinkedList<Double> emptyList = new LinkedList<>();
-                previousWeights[i].add(emptyList);
+        File f = new File("./neuronResult/network_test" + networkCount);
+        double acc = 0;
+        try{
+            f.createNewFile();
+            FileWriter fw = new FileWriter(f);
+            StringBuilder sb = new StringBuilder();
 
-                LinkedList<Double> weights = i == hiddenLayerSize ? outputs.get(j).weights() : hiddenLayers[i].get(j).weights();
-                for (int k = 0; k < weights.size(); k++) {
-                    previousWeights[i].get(j).add(weights.get(k));
+            //saves weights from previous epoch
+            LinkedList<LinkedList<Double>>[] previousWeights = new LinkedList[hiddenLayerSize + 1];
+            int correctlyPredicted = 0;
+            for (int i = hiddenLayerSize; i >= 0; i--) {
+                int maxRow = i == hiddenLayerSize ? outputSize : neuronPerHidden;
+                previousWeights[i] = new LinkedList<>();
+
+                for (int j = 0; j < maxRow; j++) {
+                    //creates an empty list to add to the outer list
+                    LinkedList<Double> emptyList = new LinkedList<>();
+                    previousWeights[i].add(emptyList);
+
+                    LinkedList<Double> weights = i == hiddenLayerSize ? outputs.get(j).weights() : hiddenLayers[i].get(j).weights();
+                    for (Double weight : weights) {
+                        previousWeights[i].get(j).add(weight);
+                    }
                 }
             }
-        }
 
-        for (int currentEpoch = 0; currentEpoch < maxEpoch; currentEpoch++) {
-            for (int i = 0; i < trainingSet[currentEpoch % expected.length].length; i++) {
-                inputs.get(i).changeInput(0, trainingSet[currentEpoch % expected.length][i]);
-            }
+            for (int currentEpoch = 0; currentEpoch < maxEpoch; currentEpoch++) {
+                for (int i = 0; i < trainingSet[currentEpoch % expected.length].length; i++) {
+                    inputs.get(i).changeInput(0, trainingSet[currentEpoch % expected.length][i]);
+                }
 
-            double[] predicted = getOutput();
-            double[] error = new double[outputSize];
+                double[] predicted = getOutput();
+                double[] error = new double[outputSize];
 
-            for (int i = 0; i < outputSize; i++) {
-                error[i] = expected[currentEpoch % expected.length][i] - predicted[i];
+                for (int i = 0; i < outputSize; i++) {
+                    error[i] = expected[currentEpoch % expected.length][i] - predicted[i];
 //                boolean valueAccepted = Math.abs(Math.round(expected[currentEpoch % expected.length][i] / scale) - Math.round(predicted[i] / scale)) <= 5;
-                boolean valueAccepted = Math.round(expected[currentEpoch % expected.length][i] / scale) - Math.round(Math.abs(predicted[i]/ scale)) <= 5;
-//                System.out.println("Value accepted? " + valueAccepted);
-                if (valueAccepted) correctlyPredicted++;
-
-            }
-
-            // report error of each output
-            System.out.print("epoch:" + currentEpoch + " ");
-            for (int i = 0; i < error.length; i++) {
-                System.out.print("error " + i + " :" + error[i] + " ");
-                if (i == error.length - 1) {
-                    double sse = 0;
-                    for (double v : error) {
-                        sse += Math.pow(v, 2);
+                    boolean valueAccepted = Math.round(expected[currentEpoch % expected.length][i] / scale) - Math.round(Math.abs(predicted[i]/ scale)) == 0;
+                    if (confusionAllowed){
+                        if (expected[currentEpoch % expected.length].equals(case01)){
+                            if (predicted[0] > predicted[1]) confusion[0][0]++;
+                            else confusion[0][1]++;
+                        } else if (expected[currentEpoch % expected.length].equals(case10)){
+                            if (predicted[0] > predicted[1]) confusion[0][1]++;
+                            else confusion[1][1]++;
+                        }
                     }
-                    double mse = sse / (double) outputSize;
+//                System.out.println("Value accepted? " + valueAccepted);
+                    if (valueAccepted) correctlyPredicted++;
 
-                    System.out.println("mse: " + mse);
+                }
+
+                for (int i=0;i < error.length;i++){
+                    sb.append(error[i]);
+                    sb.append(" ");
+                }
+                sb.append("\n");
+
+                // report error of each output
+//            System.out.print("epoch:" + currentEpoch + " ");
+//            for (int i = 0; i < error.length; i++) {
+//                System.out.print("error " + i + " :" + error[i] + " ");
+//                if (i == error.length - 1) {
+//                    double sse = 0;
+//                    for (double v : error) {
+//                        sse += Math.pow(v, 2);
+//                    }
+//                    double mse = sse / (double) outputSize;
+
+//                    System.out.println("mse: " + mse);
 //                    System.out.print("Predicted: ");
 //                    for (double sample : predicted) {
 //                        System.out.print(sample + " ");
@@ -250,110 +280,122 @@ public class NeuralNetwork {
 //                        System.out.print(Math.round(Math.abs(error[j])/ scale) + " ");
 //                    }
 //                    System.out.println();
-                }
-
-            }
+//                }
+//
+//            }
 //            System.out.println("------------------------------------------------");
 
-            // backpropagates here
-            // get gradient of each neuron first (except input neurons lol)
-            double[][] localGrads = new double[hiddenLayerSize + 1][neuronPerHidden]; // for hidden + output
+                // backpropagates here
+                // get gradient of each neuron first (except input neurons lol)
+                double[][] localGrads = new double[hiddenLayerSize + 1][neuronPerHidden]; // for hidden + output
 
-            for (int i = 0; i < outputSize; i++) {
-                for (int j = 0; j < neuronPerHidden; j++) {
-                    Perceptron n = outputs.get(i);
-                    double derivFnValue = n.useDerivFn(n.getOutputRaw());
+                for (int i = 0; i < outputSize; i++) {
+                    for (int j = 0; j < neuronPerHidden; j++) {
+                        Perceptron n = outputs.get(i);
+                        double derivFnValue = n.useDerivFn(n.getOutputRaw());
 
-                    localGrads[hiddenLayerSize][j] = error[i] * derivFnValue;
-                }
-            }
-
-            //hidden layer i
-            for (int i = hiddenLayerSize - 1; i >= 0; i--) {
-                //hidden neuron j layer i
-                for (int j = 0; j < neuronPerHidden; j++) {
-                    Perceptron currentP = hiddenLayers[i].get(j);
-                    double derivOfSelf = currentP.useDerivFn(currentP.getOutputRaw());
-                    double sumOfGradAndWeight = 0;
-                    // if it is near output layer
-                    if (i == hiddenLayerSize - 1) {
-
-                        // for each output neuron connected to hidden j layer i
-                        for (int k = 0; k < outputs.size(); k++) {
-                            double outputWeightToJ = outputs.get(k).weights().get(j);
-                            sumOfGradAndWeight += localGrads[i + 1][k] * outputWeightToJ;
-                        }
-
-                    } else {
-                        for (int k = 0; k < neuronPerHidden; k++) {
-                            double outputWeightToJ = hiddenLayers[i + 1].get(k).weights().get(j);
-                            sumOfGradAndWeight += localGrads[i + 1][k] * outputWeightToJ;
-                        }
-                    }
-                    localGrads[i][j] = derivOfSelf * sumOfGradAndWeight;
-                }
-            }
-
-            //keeps all current weights for previousWeights
-            LinkedList<LinkedList<Double>>[] savedWeights = new LinkedList[hiddenLayerSize + 1];
-            if (currentEpoch > 0)
-                for (int i = hiddenLayerSize; i >= 0; i--) {
-                    int maxRow = i == hiddenLayerSize ? outputSize : neuronPerHidden;
-                    savedWeights[i] = new LinkedList<>();
-
-                    for (int j = 0; j < maxRow; j++) {
-                        //creates an empty list to add to the outer list
-                        LinkedList<Double> emptyList = new LinkedList<>();
-                        savedWeights[i].add(emptyList);
-
-                        LinkedList<Double> weights = i == hiddenLayerSize ? outputs.get(j).weights() : hiddenLayers[i].get(j).weights();
-                        for (int k = 0; k < weights.size(); k++) {
-                            savedWeights[i].get(j).add(weights.get(k));
-                        }
+                        localGrads[hiddenLayerSize][j] = error[i] * derivFnValue;
                     }
                 }
 
-            //update weights here
-            //for outputs
-            for (int i = 0; i < outputs.size(); i++) {
-                Perceptron currentP = outputs.get(i);
-                LinkedList<Double> outputWeights = currentP.weights();
-                for (int j = 0; j < neuronPerHidden; j++) {
-                    currentP.updateWeight(j, outputWeights.get(j) + currentP.lr() * localGrads[hiddenLayerSize][j] * currentP.getOutput()
-                            + currentP.mr() * (outputWeights.get(j) - previousWeights[hiddenLayerSize].get(i).get(j)));
-                }
-            }
-            //for hidden
-            for (int i = hiddenLayerSize - 1; i >= 0; i--) {
-                //check if it's currently close to input layer
-                int weightsToChange = i == 0 ? inputSize : neuronPerHidden;
-                //then update each neuron
-                for (int j = 0; j < neuronPerHidden; j++) {
-                    Perceptron currentH = hiddenLayers[i].get(j);
-                    LinkedList<Double> hiddenWeights = currentH.weights();
+                //hidden layer i
+                for (int i = hiddenLayerSize - 1; i >= 0; i--) {
+                    //hidden neuron j layer i
+                    for (int j = 0; j < neuronPerHidden; j++) {
+                        Perceptron currentP = hiddenLayers[i].get(j);
+                        double derivOfSelf = currentP.useDerivFn(currentP.getOutputRaw());
+                        double sumOfGradAndWeight = 0;
+                        // if it is near output layer
+                        if (i == hiddenLayerSize - 1) {
 
-                    //finally, loop over all connected inputs
-                    for (int k = 0; k < weightsToChange; k++) {
-                        currentH.updateWeight(k, hiddenWeights.get(k) + currentH.lr() * currentH.getOutput() * localGrads[i][j]
-                                + currentH.mr() * (hiddenWeights.get(k) - previousWeights[i].get(j).get(k)));
+                            // for each output neuron connected to hidden j layer i
+                            for (int k = 0; k < outputs.size(); k++) {
+                                double outputWeightToJ = outputs.get(k).weights().get(j);
+                                sumOfGradAndWeight += localGrads[i + 1][k] * outputWeightToJ;
+                            }
+
+                        } else {
+                            for (int k = 0; k < neuronPerHidden; k++) {
+                                double outputWeightToJ = hiddenLayers[i + 1].get(k).weights().get(j);
+                                sumOfGradAndWeight += localGrads[i + 1][k] * outputWeightToJ;
+                            }
+                        }
+                        localGrads[i][j] = derivOfSelf * sumOfGradAndWeight;
                     }
                 }
+
+                //keeps all current weights for previousWeights
+                LinkedList<LinkedList<Double>>[] savedWeights = new LinkedList[hiddenLayerSize + 1];
+                if (currentEpoch > 0)
+                    for (int i = hiddenLayerSize; i >= 0; i--) {
+                        int maxRow = i == hiddenLayerSize ? outputSize : neuronPerHidden;
+                        savedWeights[i] = new LinkedList<>();
+
+                        for (int j = 0; j < maxRow; j++) {
+                            //creates an empty list to add to the outer list
+                            LinkedList<Double> emptyList = new LinkedList<>();
+                            savedWeights[i].add(emptyList);
+
+                            LinkedList<Double> weights = i == hiddenLayerSize ? outputs.get(j).weights() : hiddenLayers[i].get(j).weights();
+                            for (int k = 0; k < weights.size(); k++) {
+                                savedWeights[i].get(j).add(weights.get(k));
+                            }
+                        }
+                    }
+
+                //update weights here
+                //for outputs
+                for (int i = 0; i < outputs.size(); i++) {
+                    Perceptron currentP = outputs.get(i);
+                    LinkedList<Double> outputWeights = currentP.weights();
+                    for (int j = 0; j < neuronPerHidden; j++) {
+                        currentP.updateWeight(j, outputWeights.get(j) + currentP.lr() * localGrads[hiddenLayerSize][j] * currentP.getOutput()
+                                + currentP.mr() * (outputWeights.get(j) - previousWeights[hiddenLayerSize].get(i).get(j)));
+                    }
+                }
+                //for hidden
+                for (int i = hiddenLayerSize - 1; i >= 0; i--) {
+                    //check if it's currently close to input layer
+                    int weightsToChange = i == 0 ? inputSize : neuronPerHidden;
+                    //then update each neuron
+                    for (int j = 0; j < neuronPerHidden; j++) {
+                        Perceptron currentH = hiddenLayers[i].get(j);
+                        LinkedList<Double> hiddenWeights = currentH.weights();
+
+                        //finally, loop over all connected inputs
+                        for (int k = 0; k < weightsToChange; k++) {
+                            currentH.updateWeight(k, hiddenWeights.get(k) + currentH.lr() * currentH.getOutput() * localGrads[i][j]
+                                    + currentH.mr() * (hiddenWeights.get(k) - previousWeights[i].get(j).get(k)));
+                        }
+                    }
+                }
+
+                //finally, update weights for epoch-1 array of linked lists if
+                //it passes the first run of training process
+                if (currentEpoch > 0) {
+                    System.arraycopy(savedWeights, 0, previousWeights, 0, previousWeights.length);
+                }
+//                int kek = 0;            //just a placeholder for breakpoint debugging
             }
 
-            //finally, update weights for epoch-1 array of linked lists if
-            //it passes the first run of training process
-            if (currentEpoch > 0) {
-                for (int i = 0; i < previousWeights.length; i++) {
-                    previousWeights[i] = savedWeights[i];
-                }
-            }
-            int kek = 0;            //just a placeholder for breakpoint debugging
+            if (!confusionAllowed)acc = correctlyPredicted / (double) maxEpoch * 100;
+            else acc = (confusion[0][0] + confusion[1][1]) / (double) maxEpoch * 100;
+//            System.out.println("Train accuracy: " + acc);
+
+            networkCount++;
+
+//            sb.append("\n");
+            fw.write(sb.toString());
+            fw.close();
+        }catch(Exception e){
+            System.out.println("An error occurred.");
+            e.printStackTrace();
         }
 
-        double acc = correctlyPredicted / (double) maxEpoch * 100;
-        System.out.println("Train accuracy: " + acc);
+
 
         return acc;
     }
 
+    public static void resetNetworkCount() {networkCount = 0;}
 }
