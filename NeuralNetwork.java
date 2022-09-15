@@ -3,6 +3,7 @@ import neurons.Perceptron;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.util.Arrays;
 import java.util.LinkedList;
 
 public class NeuralNetwork {
@@ -21,8 +22,8 @@ public class NeuralNetwork {
     private int neuronPerHidden;
     private int outputSize;
 
-    private static final int[] case01 = {0, 1};
-    private static final int[] case10 = {1, 0};
+    private static final double[] case01 = {0, 1};
+    private static final double[] case10 = {1, 0};
 
     @SuppressWarnings("unchecked")
     public NeuralNetwork(int inputNumber, int hiddenLayerCount, int hiddenPerLayer, int outputNumber,
@@ -227,25 +228,28 @@ public class NeuralNetwork {
                     error[i] = expected[currentEpoch % expected.length][i] - predicted[i];
 //                boolean valueAccepted = Math.abs(Math.round(expected[currentEpoch % expected.length][i] / scale) - Math.round(predicted[i] / scale)) <= 5;
                     boolean valueAccepted = Math.round(expected[currentEpoch % expected.length][i] / scale) - Math.round(Math.abs(predicted[i]/ scale)) == 0;
-                    if (confusionAllowed){
-                        if (expected[currentEpoch % expected.length].equals(case01)){
-                            if (predicted[0] > predicted[1]) confusion[0][0]++;
-                            else confusion[0][1]++;
-                        } else if (expected[currentEpoch % expected.length].equals(case10)){
-                            if (predicted[0] > predicted[1]) confusion[0][1]++;
-                            else confusion[1][1]++;
-                        }
-                    }
+
 //                System.out.println("Value accepted? " + valueAccepted);
                     if (valueAccepted) correctlyPredicted++;
 
                 }
 
-                for (int i=0;i < error.length;i++){
-                    sb.append(error[i]);
-                    sb.append(" ");
+                if (confusionAllowed){
+                    if (Arrays.equals(expected[currentEpoch % expected.length],case10)){
+                        if (predicted[0] > predicted[1]) confusion[0][0]++;
+                        else confusion[0][1]++;
+                    } else if (Arrays.equals(expected[currentEpoch % expected.length],case01)){
+                        if (predicted[0] > predicted[1]) confusion[1][0]++;
+                        else confusion[1][1]++;
+                    }
                 }
-                sb.append("\n");
+
+                double mse = 0;
+                for (double err:error){
+                    mse+=Math.pow(err,2);
+                }
+
+                sb.append(mse/(double) outputSize + "\n");
 
                 // report error of each output
 //            System.out.print("epoch:" + currentEpoch + " ");

@@ -15,17 +15,8 @@ public class NetworkTest {
     private static int confusionCount = 0;
 
     public static void main(String[] args) throws Exception {
-//        int inputNum = 8;
-//        int hiddenPerLayer = 6;
-//        int hiddenLayerCount = 1;
-//        int outputNumber = 1;
-//        double lr = 0.2;
-//        double mr = 0.1;
 
-        //all vars to control generalization and samples to be used for accuracy testing
-//        double scale = 0.001;
-        double scale = 1 / 10.0;
-//        int trainSampleCount = (int) (314 * 0.9);
+        double scale = 1 / 100.0;
 
 
         try {
@@ -51,13 +42,6 @@ public class NetworkTest {
             //do not use numbers like 0.1 ,or it goes boom
             shuffleData(dataInputs, expected);
             double[] deductedValues = generalize(dataInputs, expected, scale);
-
-            //test #0
-//            NeuralNetwork nn_test = new NeuralNetwork(inputNum, hiddenLayerCount, hiddenPerLayer, outputNumber, lr, mr);
-//            for (int i = 0; i < inputNum; i++) nn_test.addInput(0);
-//
-//            nn_test.train(1000, dataInputs, expected, scale);
-
 
             double[][] nn_data1 = new double[7][5];                     //pattern {inputs,hiddenNeurons,outputs,learning,momentum}
             String test1File = "./test1v2.txt";
@@ -90,13 +74,13 @@ public class NetworkTest {
             s = new Scanner(f);
 
             dataCount = 0;
-            boolean isInput = true;                       //true if it's input, false if it's output
+
             while (s.hasNext()) {
                 String current = s.next();
                 if (current.contains("p")) current = s.next();
                 int row = dataCount / 2;
                 int col = dataCount % 2;
-                isInput = dataCount % 4 < 2;
+                boolean isInput = dataCount % 4 < 2;
                 if (isInput) {
                     dataInputs[row/2][col] = Double.parseDouble(current);
                 } else {
@@ -106,18 +90,20 @@ public class NetworkTest {
                 dataCount++;
             }
 
+            System.out.println("\n\n---------------------Test 2: Confusion Matrix---------------------");
             Pair<NeuralNetwork, double[]>[] nn_2 = new Pair[nn_data2.length];
             for (int i = 0; i < nn_2.length; i++) {
                 nn_2[i] = runTest2(nn_data2[i], dataInputs, expected);
 
-                int selectedPos = (int) nn_1[i].second()[2] + 1;
+                int selectedPos = (int) nn_2[i].second()[2] + 1;
                 assert nn_2[i] != null;
                 System.out.println("Network " + i + ": " + nn_data1[i][0] + "-" + nn_data1[i][1] + "-" + nn_data1[i][2]
                         + " with learning rate of " + nn_data1[i][3] + " and momentum rate of " + nn_data1[i][4]
                         + " from " + selectedPos + "/" + 10);
                 assert nn_2[i] != null;
                 System.out.println("Final accuracy: " + nn_2[i].second()[1] + "%");
-                System.out.println("Train accuracy before validation: " + nn_1[i].second()[0] + "%");
+                System.out.println("Train accuracy before validation: " + nn_2[i].second()[0] + "%");
+                System.out.println("-------------------------------------------------");
             }
 
 
@@ -142,10 +128,8 @@ public class NetworkTest {
 
         double[][] trainInputs = new double[trainSize][dataInputs[0].length];
         double[][] trainExpected = new double[trainSize][expected[0].length];
-//        double[] trainDeduced = new double[trainSize];
         double[][] vadInputs = new double[vadSize][dataInputs[0].length];
         double[][] vadExpected = new double[vadSize][expected[0].length];
-//        double[] vadDeduced = new double[vadSize];
 
         //construct and train networks here
         NeuralNetwork[] nns = new NeuralNetwork[10];
@@ -157,7 +141,7 @@ public class NetworkTest {
         Pair<NeuralNetwork, double[]> result = new Pair<>(null, emptyAcc);
         for (int i = 0; i < 10; i++) {
             nns[i] = new NeuralNetwork(
-                    (int) nnStructures[0], 1, (int) nnStructures[1], (int) nnStructures[2], 1,
+                    (int) nnStructures[0], 1, (int) nnStructures[1], (int) nnStructures[2],
                     (int) nnStructures[3], nnStructures[4]);
             for (int j = 0; j < dataInputs[0].length; j++) nns[i].addInput(0);
 
@@ -173,7 +157,7 @@ public class NetworkTest {
 
             //once it's trained, validate it to get a result
             double vadAcc = validateAccuracy(nns[i], vadInputs, vadExpected, scale);
-            System.out.println("Validated acc: " + Math.round(vadAcc * 100) / 100.0);
+            System.out.println("Validated acc: " + Math.round(vadAcc * 100) / 100.0 + " Train acc: " + Math.round(trainAcc * 100) / 100.0);
             if (result.first() == null || trainAcc < vadAcc && result.second()[1] < vadAcc) {         //need to fix null pointer
                 double[] accOfTrainAndVad = {trainAcc, vadAcc, i};
                 result = new Pair<>(nns[i], accOfTrainAndVad);
@@ -237,12 +221,12 @@ public class NetworkTest {
             startValidation += posShift;
             endValidation += posShift;
 
-            double trainAcc = nns[i].train(400, trainInputs, trainExpected, 1, true);
+            double trainAcc = nns[i].train(500, trainInputs, trainExpected, 1, true);
             int[][] confusion = getConfusion(nns[i], vadInputs, vadExpected);
 
             try {
                 StringBuilder sb = new StringBuilder();
-                File f = new File("./neuronResult/confusion" + confusionCount);
+                File f = new File("./neuronResult/confusions/confusion" + confusionCount);
                 FileWriter fw = new FileWriter(f);
                 f.createNewFile();
 
@@ -254,15 +238,16 @@ public class NetworkTest {
                     sb.append("\n");
                 }
 
+                fw.write(sb.toString());
                 fw.close();
                 confusionCount++;
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
-            double acc = (confusion[0][0] + confusion[1][1]) / (double) vadSize;
-
-            if (result.first() != null || trainAcc < acc && acc > result.second()[1]) {
+            double acc = (confusion[0][0] + confusion[1][1]) / (double) vadSize * 100;
+            System.out.println("Validated acc: " + Math.round(acc * 100) / 100.0 + " Train acc: " + Math.round(trainAcc * 100) / 100.0);
+            if (result.first() == null || trainAcc < acc && acc > result.second()[1]) {
                 double[] accOfTrainAndVad = {trainAcc, acc, i};
                 result = new Pair<>(nns[i], accOfTrainAndVad);
             }
@@ -333,8 +318,8 @@ public class NetworkTest {
         for (int i = 0; i < testInputs.length; i++) {
             for (int j = 0; j < testInputs[i].length; j++) nn.changeInput(j, testInputs[i][j]);
             for (int j = 0; j < testExpected[i].length; j++) {
-                int predicted = (int) (nn.getOutput()[j] * scale);
-                int expected = (int) (testExpected[i][j] * scale);
+                int predicted = (int) (nn.getOutput()[j] / scale);
+                int expected = (int) (testExpected[i][j] / scale);
 
                 boolean valueAccepted = expected - predicted == 0;
                 if (valueAccepted) correctPrediction++;
@@ -356,7 +341,7 @@ public class NetworkTest {
                 if (outputs[0] > outputs[1]) confusionMatrix[0][0]++;
                 else confusionMatrix[0][1]++;
             } else if (Arrays.equals(expected[i], case01)) {
-                if (outputs[0] > outputs[1]) confusionMatrix[0][1]++;
+                if (outputs[0] > outputs[1]) confusionMatrix[1][0]++;
                 else confusionMatrix[1][1]++;
             }
         }

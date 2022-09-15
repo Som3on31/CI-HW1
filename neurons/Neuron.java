@@ -1,14 +1,5 @@
 package neurons;
 
-/*
- * @author AR
- *
- * <p>This class is created to make a full use of the concept of a neuron as a unit
- * </p>
- */
-
-import neurons.Perceptron;
-
 import java.util.Random;
 import java.util.LinkedList;
 
@@ -84,11 +75,7 @@ public class Neuron implements Perceptron {
 //        return getOutputRaw() + bias;
     }
 
-
-    public double finalizeOutput() {
-        return 0f;
-    }
-
+    @Override
     public boolean addInput(double input) {
         if (rawInputs == null) {
             System.out.println("Error: this neuron accepts neurons as an input only.");
@@ -105,6 +92,7 @@ public class Neuron implements Perceptron {
         return false;
     }
 
+    @Override
     public boolean addInput(Perceptron input) {
         if (inputNeurons == null) {
             System.out.println("Error: this neuron accepts raw inputs as an input only.");
@@ -121,38 +109,11 @@ public class Neuron implements Perceptron {
         return false;
     }
 
+    @Override
     public double changeInput(int pos, double input) {
         double oldValue = rawInputs.get(pos);
         rawInputs.set(pos, input);
         return oldValue;
-    }
-
-    /**
-     * Returns a set of data of this neuron. This includes all inputs, weights and
-     * bias
-     * to be saved for later use and to simulate "learning" ability of the network.
-     */
-    public void getNeuronData() {
-        // String weightData = new String();
-        // String biasData = new String();
-        // String learningRate = new String();
-        StringBuilder sb = new StringBuilder();
-
-        if (rawInputs != null) {
-            for (double input : rawInputs) {
-                sb.append(input);
-                sb.append(" ");
-            }
-        }
-        sb.append("\n");
-        for (double weight : weights) {
-            sb.append(weight);
-            sb.append(" ");
-        }
-        sb.append("\n" + bias + "\n");
-
-        String result = sb.toString();
-
     }
 
     /**
@@ -169,43 +130,78 @@ public class Neuron implements Perceptron {
         return inputCount == MAX_SIZE;
     }
 
+    /**
+     * (Deprecated) Returns a how close a value of the result to a desired value
+     * @param result a value gathered from using a perceptron
+     * @param expected a value one wishes to see
+     * @return a value in (expected - result) / expected
+     */
     @Override
+    @Deprecated
     public double getError(double result, double expected) {
-        return expected - result / expected;
+        return (expected - result) / expected;
     }
 
+    @Override
     public double useActivationFn(double input) {
         return Math.max(0.01 * input, input);
     }
 
+    @Override
     public double useDerivFn(double input) {
         return input > 0 ? 1 : 0.001;
     }
 
+    /**
+     *
+     * @param pos weight j that connects to this neuron
+     * @param newValue a new weight to be used
+     */
+    @Override
     public void updateWeight(int pos, double newValue) {
         weights.set(pos, newValue);
     }
 
+    /**
+     * Changes the current bias to a new value
+     * @param newValue a new bias to be used
+     */
     @Override
     public void updateBias(double newValue) {
         bias =  newValue;
     }
 
+    /**
+     * Returns a linked list of weights connected to this neuron.
+     * @return a linked list which contains a set of weights that connect to this neuron
+     */
     @Override
     public LinkedList<Double> weights() {
         return weights;
     }
 
+    /**
+     * Returns bias of the neuron
+     * @return bias used from initialization
+     */
     @Override
     public double bias() {
         return bias;
     }
 
+    /**
+     * Returns learning rate of the neuron
+     * @return learning rate used from initialization
+     */
     @Override
     public double lr() {
         return learningRate;
     }
 
+    /**
+     * Returns momentum rate of the neuron
+     * @return momentum rate used from initialization
+     */
     @Override
     public double mr() { return momentumRate; }
 
